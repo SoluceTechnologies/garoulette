@@ -1,0 +1,15 @@
+name: garoulette-production
+
+services:
+  app:
+    #     build:
+    #       context: .
+    #       dockerfile: docker/dockerfile
+    #       target: prod
+    image: soluce-technologies/garoulette:latest
+    container_name: qardqntac-production-app
+    restart: unless-stopped
+    ports:
+      - "7676:80"
+    env_file:
+      - .env
