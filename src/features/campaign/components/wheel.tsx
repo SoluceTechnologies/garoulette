@@ -1,7 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-
 export type WheelPrize = {
   id: string;
   name: string;
@@ -17,29 +15,27 @@ type WheelProps = {
   onSpinEnd: () => void;
 };
 
+/**
+ * Presentational wheel. Wedge `i` is centered at screen angle `i*seg` clockwise
+ * from the top (the conic gradient starts at `from: -seg/2`); the parent's
+ * landing math relies on that contract. Labels sit near the rim of their wedge.
+ */
 export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProps) {
   const seg = 360 / prizes.length;
-
-  // Hard-stop conic gradient: one solid wedge per prize, first wedge centered at top.
-  const stops = prizes
-    .map((_, i) => {
-      const color = PALETTE[i % PALETTE.length];
-      return `${color} ${i * seg}deg ${(i + 1) * seg}deg`;
-    })
-    .join(", ");
+  const stops = prizes.map((_, i) => `${PALETTE[i % PALETTE.length]} ${i * seg}deg ${(i + 1) * seg}deg`).join(", ");
 
   return (
-    <div className="relative aspect-square w-full max-w-[80vmin]">
+    <div className="relative aspect-square w-full max-w-[min(80vmin,30rem)]">
       {/* Pointer at 12 o'clock */}
-      <div className="-translate-x-1/2 absolute top-0 left-1/2 z-20 h-0 w-0 border-transparent border-t-[36px] border-r-[22px] border-l-[22px] border-t-black" />
+      <div className="-translate-x-1/2 absolute top-[-4px] left-1/2 z-20 h-0 w-0 border-transparent border-t-[30px] border-t-foreground border-r-[18px] border-l-[18px]" />
 
       {/* Rotating wheel */}
       <div
-        className="absolute inset-0 rounded-full border-8 border-black shadow-2xl"
+        className="absolute inset-0 overflow-hidden rounded-full border-[6px] border-foreground shadow-[var(--shadow-pop)]"
         style={{
           background: `conic-gradient(from ${-seg / 2}deg, ${stops})`,
           transform: `rotate(${rotation}deg)`,
-          transition: `transform ${spinDurationMs}ms cubic-bezier(0.12, 0.8, 0.16, 1)`,
+          transition: `transform ${spinDurationMs}ms cubic-bezier(0.16, 1, 0.3, 1)`,
         }}
         onTransitionEnd={(e) => {
           if (e.propertyName === "transform") onSpinEnd();
@@ -48,37 +44,32 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
         {prizes.map((prize, i) => (
           <div
             key={prize.id}
-            className="absolute top-1/2 left-1/2 origin-left"
-            style={{
-              transform: `rotate(${i * seg - 90}deg) translateX(6%)`,
-            }}
+            className="pointer-events-none absolute inset-0"
+            style={{ transform: `rotate(${i * seg}deg)` }}
           >
-            <div
-              className="flex w-[42%] max-w-[42%] items-center gap-2 font-bold text-white text-sm drop-shadow"
-              style={{ transform: "translateY(-50%)" }}
-            >
-              {/* biome-ignore lint/performance/noImgElement: prize images are runtime volume files, not build-time assets */}
-              <img
-                src={prize.imageUrl}
-                alt=""
-                className="h-8 w-8 shrink-0 rounded object-contain"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
-                }}
-              />
-              <span className="truncate">{prize.name}</span>
+            {/* Label pinned near the top rim; the layer rotation carries it onto wedge i. */}
+            <div className="-translate-x-1/2 absolute top-[8%] left-1/2 flex w-[34%] flex-col items-center gap-1 text-center">
+              {prize.imageUrl && (
+                // biome-ignore lint/performance/noImgElement: prize images are runtime volume files, not build-time assets
+                <img
+                  src={prize.imageUrl}
+                  alt=""
+                  className="h-9 w-9 rounded object-contain"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              )}
+              <span className="font-bold text-white text-xs leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                {prize.name}
+              </span>
             </div>
           </div>
         ))}
       </div>
 
       {/* Hub */}
-      <div
-        className={cn(
-          "-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10",
-          "h-16 w-16 rounded-full border-4 border-black bg-white shadow-lg",
-        )}
-      />
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 h-16 w-16 rounded-full border-[6px] border-foreground bg-card shadow-[var(--shadow-card)]" />
     </div>
   );
 }

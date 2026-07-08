@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
 import { spinAction } from "../actions/spin";
 import { fireConfetti } from "./confetti";
-import { Wheel, type WheelPrize } from "./wheel";
+import { PrizeReveal } from "./prize-reveal";
+import { SpinStage } from "./spin-stage";
+import { StatusScreen } from "./status-screen";
+import type { WheelPrize } from "./wheel";
 
 const SPIN_DURATION_MS = 4500;
 
@@ -19,6 +21,10 @@ type CampaignScreenProps = {
   initialStatus: "ready" | "soldOut" | "expired";
 };
 
+/**
+ * Client orchestrator for the kiosk: owns the spin state machine and delegates
+ * all rendering to the presentational stage / reveal / status components.
+ */
 export function CampaignScreen({
   slug,
   logoUrl,
@@ -49,6 +55,13 @@ export function CampaignScreen({
     [rotation, seg],
   );
 
+  const reset = useCallback(() => {
+    if (resetTimer.current) clearTimeout(resetTimer.current);
+    resetTimer.current = null;
+    setWonPrize(null);
+    setStatus("ready");
+  }, []);
+
   const spin = useCallback(async () => {
     if (status !== "ready") return;
     setStatus("spinning");
@@ -76,13 +89,6 @@ export function CampaignScreen({
     setRotation(landingRotation(data.prizeIndex));
   }, [status, slug, prizes, landingRotation]);
 
-  const reset = useCallback(() => {
-    if (resetTimer.current) clearTimeout(resetTimer.current);
-    resetTimer.current = null;
-    setWonPrize(null);
-    setStatus("ready");
-  }, []);
-
   const handleSpinEnd = useCallback(() => {
     if (status !== "spinning" || !pendingPrize.current) return;
     setWonPrize(pendingPrize.current);
@@ -98,10 +104,10 @@ export function CampaignScreen({
   }, [status, spin, reset]);
 
   if (initialStatus === "expired" || status === "expired") {
-    return <FullMessage title="Campaign ended" subtitle="Thanks for playing!" />;
+    return <StatusScreen logoUrl={logoUrl} title="Campaign ended" subtitle="Thanks for playing!" />;
   }
   if (initialStatus === "soldOut" || status === "soldOut") {
-    return <FullMessage title="All prizes have been given out 🎉" subtitle="See you next time!" />;
+    return <StatusScreen logoUrl={logoUrl} title="All prizes have been given out 🎉" subtitle="See you next time!" />;
   }
 
   return (
@@ -109,54 +115,19 @@ export function CampaignScreen({
       type="button"
       onClick={handleTap}
       disabled={status === "spinning"}
-      className="flex min-h-full w-full flex-1 cursor-pointer flex-col items-center justify-center gap-8 bg-secondary p-8 text-center disabled:cursor-default"
+      className="relative flex min-h-full w-full flex-1 cursor-pointer flex-col bg-background disabled:cursor-default"
     >
-      {logoUrl && (
-        <div>
-          {/* biome-ignore lint/performance/noImgElement: campaign logo is a runtime volume file, not a build-time asset */}
-          <img src={logoUrl} alt="" className="h-20 w-auto object-contain" />
-        </div>
-      )}
-
-      {welcomeMessage && status === "ready" && (
-        <h1 className="max-w-2xl font-black text-4xl text-white">{welcomeMessage}</h1>
-      )}
-
-      <Wheel prizes={prizes} rotation={rotation} spinDurationMs={SPIN_DURATION_MS} onSpinEnd={handleSpinEnd} />
-
-      {status === "ready" && (
-        <span className="rounded-full bg-primary px-10 py-4 font-black text-2xl text-white shadow-lg">TAP TO SPIN</span>
-      )}
-
-      {status === "result" && wonPrize && (
-        <div className="flex flex-col items-center gap-4">
-          <p className="font-bold text-2xl text-white">You won</p>
-          {/* biome-ignore lint/performance/noImgElement: prize images are runtime volume files, not build-time assets */}
-          <img
-            src={wonPrize.imageUrl}
-            alt=""
-            className="h-40 w-40 rounded-2xl bg-white/10 object-contain p-2"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
-            }}
-          />
-          <p className="font-black text-4xl text-primary">{wonPrize.name}</p>
-          <p className="text-sm text-white/70">Tap to continue</p>
-        </div>
-      )}
+      <SpinStage
+        logoUrl={logoUrl}
+        welcomeMessage={status === "ready" ? welcomeMessage : undefined}
+        prizes={prizes}
+        rotation={rotation}
+        spinDurationMs={SPIN_DURATION_MS}
+        onSpinEnd={handleSpinEnd}
+        showCta={status === "ready"}
+        dimmed={status === "result"}
+      />
+      {status === "result" && wonPrize && <PrizeReveal prize={wonPrize} />}
     </button>
-  );
-}
-
-function FullMessage({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div
-      className={cn(
-        "flex min-h-full w-full flex-1 flex-col items-center justify-center gap-4 bg-secondary p-8 text-center",
-      )}
-    >
-      <h1 className="max-w-2xl font-black text-4xl text-white">{title}</h1>
-      <p className="text-lg text-white/70">{subtitle}</p>
-    </div>
   );
 }
