@@ -834,7 +834,7 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
               className="flex w-[42%] max-w-[42%] items-center gap-2 font-bold text-white text-sm drop-shadow"
               style={{ transform: "translateY(-50%)" }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {/* biome-ignore lint/performance/noImgElement: prize images are runtime volume files, not build-time assets */}
               <img
                 src={prize.imageUrl}
                 alt=""
@@ -1015,7 +1015,7 @@ export function CampaignScreen({
       {status === "result" && wonPrize && (
         <div className="flex flex-col items-center gap-4">
           <p className="font-bold text-2xl text-white">You won</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* biome-ignore lint/performance/noImgElement: prize images are runtime volume files, not build-time assets */}
           <img
             src={wonPrize.imageUrl}
             alt=""
