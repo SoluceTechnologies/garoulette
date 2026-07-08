@@ -23,6 +23,7 @@
   ],
   "packageManager": "pnpm@11.0.8",
   "scripts": {
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "biome lint .",
@@ -32,6 +33,7 @@
   "dependencies": {
     "@base-ui/react": "^1.6.0",
     "@t3-oss/env-nextjs": "^0.13.11",
+    "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.23.0",
@@ -45,7 +47,9 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.10",
     "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
