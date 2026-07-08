@@ -18,6 +18,8 @@
 - `next-safe-action` v8 API: `action.inputSchema(zodSchema).action(async ({ parsedInput }) => …)`.
 - Draw is **server-authoritative**: draw + journal happen together inside the campaign lock. Never draw on the client.
 - Path aliases (from `tsconfig.json`): `@/*` → `src/*`, `@/env`, `@/config/*`.
+- **Feature-based architecture.** All campaign-domain code lives under `src/features/campaign/` (`types.ts`, `lib/`, `components/`, `actions/`, `index.ts`). Shared-only code stays outside: `src/lib/utils.ts` (`cn`), `src/lib/actions.ts` (safe-action client), `src/components/ui/` (shadcn). Inside the feature, use **relative** imports (`../types`, `./wheel`). App code (`app/**`) imports domain via the `@/features/campaign` barrel.
+- **Barrel is server/domain only.** `@/features/campaign/index.ts` re-exports `types` + `lib/*` (including `storage`, which imports `node:fs`). A `"use client"` file must therefore NEVER import from the barrel — client components import sibling feature files by relative path (`./wheel`, `../actions/spin`). Server Components may use the barrel freely; they import the client `CampaignScreen` by its direct path.
 
 ## Per-task verification (no test framework)
 
@@ -32,16 +34,17 @@ Tasks with runtime UI additionally give explicit manual `pnpm dev` checks.
 
 **Created:**
 - `.env` — local dev env (`APP_URL`, `APP_PASSWORD`); gitignored.
-- `src/lib/campaigns/types.ts` — Zod schemas + inferred types.
-- `src/lib/campaigns/stock.ts` — `computeStock` (pure).
-- `src/lib/campaigns/draw.ts` — `drawPrize` (pure weighted pick).
-- `src/lib/campaigns/images.ts` — `prizeImageUrl` (pure path helper).
-- `src/lib/campaigns/theme.ts` — `themeStyle` + default theme.
-- `src/lib/campaigns/storage.ts` — I/O: paths, `listCampaigns`, `loadCampaign`, `drawAndCommit` (lock + atomic write).
-- `src/lib/spin-action.ts` — `spinAction` server action.
-- `src/components/wheel/confetti.ts` — `fireConfetti`.
-- `src/components/wheel/wheel.tsx` — presentational rotating wheel (client).
-- `src/components/campaign/campaign-screen.tsx` — state machine + spin orchestration (client).
+- `src/features/campaign/types.ts` — Zod schemas + inferred types.
+- `src/features/campaign/lib/stock.ts` — `computeStock` (pure).
+- `src/features/campaign/lib/draw.ts` — `drawPrize` (pure weighted pick).
+- `src/features/campaign/lib/images.ts` — `prizeImageUrl` (pure path helper).
+- `src/features/campaign/lib/theme.ts` — `themeStyle` + default theme.
+- `src/features/campaign/lib/storage.ts` — I/O: paths, `listCampaigns`, `loadCampaign`, `drawAndCommit` (lock + atomic write).
+- `src/features/campaign/index.ts` — barrel: server/domain public API (types + lib). NOT the components.
+- `src/features/campaign/actions/spin.ts` — `spinAction` server action.
+- `src/features/campaign/components/confetti.ts` — `fireConfetti`.
+- `src/features/campaign/components/wheel.tsx` — presentational rotating wheel (client).
+- `src/features/campaign/components/campaign-screen.tsx` — state machine + spin orchestration (client).
 - `app/campaign/[slug]/page.tsx` — kiosk RSC.
 - `app/campaign/[slug]/error.tsx` — error screen (client).
 - `app/campaign/[slug]/images/[...file]/route.ts` — serve campaign images from the volume.
@@ -508,7 +511,7 @@ git commit -m "feat: add campaign storage with locked atomic draw+commit"
 - Modify: `.gitignore` (allow committing the demo campaign)
 
 **Interfaces:**
-- Consumes: `campaignDir` from `@/lib/campaigns/storage`.
+- Consumes: `campaignDir` from `@/features/campaign`.
 - Produces: `GET /campaign/<slug>/images/<file>` serving a file from `data/campaigns/<slug>/images/`, with path-traversal protection and a 404 fallback.
 
 - [ ] **Step 1: Seed the demo campaign JSON**
@@ -572,7 +575,7 @@ touch data/campaigns/demo/images/.gitkeep
 ```ts
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { campaignDir } from "@/lib/campaigns/storage";
+import { campaignDir } from "@/features/campaign";
 
 export const runtime = "nodejs";
 
@@ -627,21 +630,22 @@ Note: `tsc` may not know `RouteContext` until types are generated. If it errors,
 ### Task 6: Theme resolver & image URL helper
 
 **Files:**
-- Create: `src/lib/campaigns/theme.ts`
-- Create: `src/lib/campaigns/images.ts`
+- Create: `src/features/campaign/lib/theme.ts`
+- Create: `src/features/campaign/lib/images.ts`
+- Modify: `src/features/campaign/index.ts` (add `theme` + `images` to the barrel)
 
 **Interfaces:**
-- Consumes: `Settings` from `./types`.
+- Consumes: `Settings` from `../types`.
 - Produces:
   - `DEFAULT_THEME = { primaryColor: "#FF6B35"; secondaryColor: "#1A1A2E" }`
   - `themeStyle(settings: Settings): React.CSSProperties` — returns `{ "--primary": ..., "--secondary": ... }` for a wrapper element.
   - `prizeImageUrl(slug: string, image: string): string` — maps a campaign-relative image path to its route URL.
 
-- [ ] **Step 1: Write `src/lib/campaigns/theme.ts`**
+- [ ] **Step 1: Write `src/features/campaign/lib/theme.ts`**
 
 ```ts
 import type { CSSProperties } from "react";
-import type { Settings } from "./types";
+import type { Settings } from "../types";
 
 export const DEFAULT_THEME = {
   primaryColor: "#FF6B35",
@@ -659,7 +663,7 @@ export function themeStyle(settings: Settings): CSSProperties {
 
 (`globals.css` already maps `--color-primary: var(--primary)` via `@theme inline`, so overriding `--primary` on a wrapper re-themes `bg-primary`/`text-primary` inside it at runtime.)
 
-- [ ] **Step 2: Write `src/lib/campaigns/images.ts`**
+- [ ] **Step 2: Write `src/features/campaign/lib/images.ts`**
 
 ```ts
 export function prizeImageUrl(slug: string, image: string): string {
@@ -668,12 +672,21 @@ export function prizeImageUrl(slug: string, image: string): string {
 }
 ```
 
-- [ ] **Step 3: Verify & commit**
+- [ ] **Step 3: Add `theme` and `images` to the feature barrel**
+
+Append to `src/features/campaign/index.ts`:
+
+```ts
+export * from "./lib/theme";
+export * from "./lib/images";
+```
+
+- [ ] **Step 4: Verify & commit**
 
 ```bash
 pnpm exec tsc --noEmit
 pnpm exec biome check --write .
-git add src/lib/campaigns/theme.ts src/lib/campaigns/images.ts
+git add src/features/campaign/lib/theme.ts src/features/campaign/lib/images.ts src/features/campaign/index.ts
 git commit -m "feat: add theme resolver and prize image URL helper"
 ```
 
@@ -682,23 +695,23 @@ git commit -m "feat: add theme resolver and prize image URL helper"
 ### Task 7: Spin server action
 
 **Files:**
-- Create: `src/lib/spin-action.ts`
+- Create: `src/features/campaign/actions/spin.ts`
 
 **Interfaces:**
-- Consumes: `action` from `@/lib/actions`; `loadCampaign`, `drawAndCommit` from `@/lib/campaigns/storage`.
+- Consumes: `action` from `@/lib/actions` (shared client); `loadCampaign`, `drawAndCommit` from `../lib/storage` (relative — this file is inside the feature).
 - Produces: `spinAction` — call as `await spinAction({ slug })`; returns `{ data?, serverError? }` where `data` is one of:
   - `{ status: "win"; prizeId: string; prizeIndex: number; remaining: number }`
   - `{ status: "soldOut" }`
   - `{ status: "expired" }`
 
-- [ ] **Step 1: Write `src/lib/spin-action.ts`**
+- [ ] **Step 1: Write `src/features/campaign/actions/spin.ts`**
 
 ```ts
 "use server";
 
 import { z } from "zod";
 import { action } from "@/lib/actions";
-import { drawAndCommit, loadCampaign } from "@/lib/campaigns/storage";
+import { drawAndCommit, loadCampaign } from "../lib/storage";
 
 export const spinAction = action
   .inputSchema(z.object({ slug: z.string().min(1) }))
@@ -719,7 +732,7 @@ export const spinAction = action
 ```bash
 pnpm exec tsc --noEmit
 pnpm exec biome check --write .
-git add src/lib/spin-action.ts
+git add src/features/campaign/actions/spin.ts
 git commit -m "feat: add server-authoritative spin action"
 ```
 
@@ -728,8 +741,8 @@ git commit -m "feat: add server-authoritative spin action"
 ### Task 8: Wheel component + confetti
 
 **Files:**
-- Create: `src/components/wheel/confetti.ts`
-- Create: `src/components/wheel/wheel.tsx`
+- Create: `src/features/campaign/components/confetti.ts`
+- Create: `src/features/campaign/components/wheel.tsx`
 
 **Interfaces:**
 - Produces:
@@ -738,7 +751,7 @@ git commit -m "feat: add server-authoritative spin action"
   - `<Wheel prizes={WheelPrize[]} rotation={number} spinDurationMs={number} onSpinEnd={() => void} />` — a presentational, controlled component. The parent sets `rotation` (absolute degrees, monotonically increasing); the wheel eases to it over `spinDurationMs` and calls `onSpinEnd` when the transition finishes. It renders one equal-sized colored segment per prize with the prize name + small image, and a fixed pointer at the top (12 o'clock).
   - Segment geometry contract: prize `i` is centered at angle `i * seg + seg/2` measured clockwise from the top, where `seg = 360 / prizes.length`. The parent computes the landing rotation from this contract (Task 9).
 
-- [ ] **Step 1: Write `src/components/wheel/confetti.ts`**
+- [ ] **Step 1: Write `src/features/campaign/components/confetti.ts`**
 
 ```ts
 import confetti from "canvas-confetti";
@@ -752,7 +765,7 @@ export function fireConfetti(): void {
 }
 ```
 
-- [ ] **Step 2: Write `src/components/wheel/wheel.tsx`**
+- [ ] **Step 2: Write `src/features/campaign/components/wheel.tsx`**
 
 ```tsx
 "use client";
@@ -851,7 +864,7 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
 ```bash
 pnpm exec tsc --noEmit
 pnpm exec biome check --write .
-git add src/components/wheel/confetti.ts src/components/wheel/wheel.tsx
+git add src/features/campaign/components/confetti.ts src/features/campaign/components/wheel.tsx
 git commit -m "feat: add presentational wheel and confetti helper"
 ```
 
@@ -860,24 +873,24 @@ git commit -m "feat: add presentational wheel and confetti helper"
 ### Task 9: Campaign screen (state machine + spin orchestration)
 
 **Files:**
-- Create: `src/components/campaign/campaign-screen.tsx`
+- Create: `src/features/campaign/components/campaign-screen.tsx`
 
 **Interfaces:**
-- Consumes: `Wheel`, `WheelPrize` from `@/components/wheel/wheel`; `fireConfetti` from `@/components/wheel/confetti`; `spinAction` from `@/lib/spin-action`.
+- Consumes (relative — this is a `"use client"` file inside the feature): `Wheel`, `WheelPrize` from `./wheel`; `fireConfetti` from `./confetti`; `spinAction` from `../actions/spin`. Do NOT import from the `@/features/campaign` barrel here.
 - Produces: `<CampaignScreen slug welcomeMessage? resetDelaySeconds prizes initialStatus />` where
   - `prizes: WheelPrize[]`
   - `initialStatus: "ready" | "soldOut" | "expired"`
   - `resetDelaySeconds: number`
 
-- [ ] **Step 1: Write `src/components/campaign/campaign-screen.tsx`**
+- [ ] **Step 1: Write `src/features/campaign/components/campaign-screen.tsx`**
 
 ```tsx
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { fireConfetti } from "@/components/wheel/confetti";
-import { Wheel, type WheelPrize } from "@/components/wheel/wheel";
-import { spinAction } from "@/lib/spin-action";
+import { spinAction } from "../actions/spin";
+import { fireConfetti } from "./confetti";
+import { Wheel, type WheelPrize } from "./wheel";
 import { cn } from "@/lib/utils";
 
 const SPIN_DURATION_MS = 4500;
@@ -1036,7 +1049,7 @@ function FullMessage({ title, subtitle }: { title: string; subtitle: string }) {
 ```bash
 pnpm exec tsc --noEmit
 pnpm exec biome check --write .
-git add src/components/campaign/campaign-screen.tsx
+git add src/features/campaign/components/campaign-screen.tsx
 git commit -m "feat: add campaign screen state machine and spin orchestration"
 ```
 
@@ -1049,18 +1062,15 @@ git commit -m "feat: add campaign screen state machine and spin orchestration"
 - Create: `app/campaign/[slug]/error.tsx`
 
 **Interfaces:**
-- Consumes: `loadCampaign` from `@/lib/campaigns/storage`; `computeStock` from `@/lib/campaigns/stock`; `themeStyle` from `@/lib/campaigns/theme`; `prizeImageUrl` from `@/lib/campaigns/images`; `CampaignScreen` from `@/components/campaign/campaign-screen`.
+- Consumes (Server Component): `loadCampaign`, `computeStock`, `themeStyle`, `prizeImageUrl` from the `@/features/campaign` barrel; `CampaignScreen` from `@/features/campaign/components/campaign-screen` (direct path — it's a client component); type `WheelPrize` from `@/features/campaign/components/wheel`.
 
 - [ ] **Step 1: Write `app/campaign/[slug]/page.tsx`**
 
 ```tsx
 import { notFound } from "next/navigation";
-import { CampaignScreen } from "@/components/campaign/campaign-screen";
-import type { WheelPrize } from "@/components/wheel/wheel";
-import { prizeImageUrl } from "@/lib/campaigns/images";
-import { computeStock } from "@/lib/campaigns/stock";
-import { loadCampaign } from "@/lib/campaigns/storage";
-import { themeStyle } from "@/lib/campaigns/theme";
+import { computeStock, loadCampaign, prizeImageUrl, themeStyle } from "@/features/campaign";
+import { CampaignScreen } from "@/features/campaign/components/campaign-screen";
+import type { WheelPrize } from "@/features/campaign/components/wheel";
 
 export const dynamic = "force-dynamic";
 
@@ -1147,7 +1157,7 @@ git commit -m "feat: add campaign kiosk page and error screen"
 - Create: `public/logo.png`, `public/logo@2x.png`, `public/logo@3x.png`
 
 **Interfaces:**
-- Consumes: `listCampaigns` from `@/lib/campaigns/storage`.
+- Consumes: `listCampaigns` from `@/features/campaign`.
 
 - [ ] **Step 1: Copy the app logos into `public/`**
 
@@ -1162,7 +1172,7 @@ cp logos-utiliser/Logo@3x.png public/logo@3x.png
 ```tsx
 import Image from "next/image";
 import Link from "next/link";
-import { listCampaigns } from "@/lib/campaigns/storage";
+import { listCampaigns } from "@/features/campaign";
 
 export const dynamic = "force-dynamic";
 
