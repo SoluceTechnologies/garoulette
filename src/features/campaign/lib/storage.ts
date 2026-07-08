@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { type Campaign, type Draw, drawsFileSchema, prizesFileSchema, settingsSchema } from "../types";
 import { drawPrize } from "./draw";
-import { type Campaign, type Draw, drawsFileSchema, prizesFileSchema, settingsSchema } from "./types";
 
 const DATA_ROOT = path.join(process.cwd(), "data", "campaigns");
 

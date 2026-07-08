@@ -1,5 +1,5 @@
+import type { Draw, Prize } from "../types";
 import { computeStock } from "./stock";
-import type { Draw, Prize } from "./types";
 
 export type DrawResult = {
 	prize: Prize;

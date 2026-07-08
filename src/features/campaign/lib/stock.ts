@@ -1,4 +1,4 @@
-import type { Draw, Prize } from "./types";
+import type { Draw, Prize } from "../types";
 
 export type PrizeStock = Prize & {
 	remaining: number;
