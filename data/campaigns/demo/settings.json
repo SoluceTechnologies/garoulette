@@ -1,0 +1,9 @@
+{
+  "name": "Demo Campaign",
+  "theme": {
+    "primaryColor": "#FF6B35",
+    "secondaryColor": "#1A1A2E"
+  },
+  "welcomeMessage": "Spin the wheel and win! 🎉",
+  "resetDelaySeconds": 6
+}
