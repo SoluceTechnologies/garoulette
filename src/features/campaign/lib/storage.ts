@@ -67,9 +67,7 @@ export async function listCampaigns(): Promise<CampaignSummary[]> {
       try {
         const { prizes } = prizesFileSchema.parse(await readJson(path.join(dir, "prizes.json")));
         prizeCount = prizes.length;
-      } catch {
-        // A campaign with no readable prizes still lists, just with a count of 0.
-      }
+      } catch {}
       result.push({
         slug: entry.name as unknown as string,
         name: settings.name,

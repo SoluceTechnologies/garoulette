@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 import { listCampaigns } from "@/features/campaign";
 
@@ -49,7 +50,11 @@ export default async function Home() {
                 <li key={campaign.slug}>
                   <Link
                     href={`/campaign/${campaign.slug}`}
-                    style={{ backgroundColor: color, color: ink, outlineColor: color }}
+                    style={{
+                      backgroundColor: color,
+                      color: ink,
+                      outlineColor: color,
+                    }}
                     className="group flex min-h-40 flex-col justify-between rounded-2xl p-6 shadow-[var(--shadow-card)] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-pop)] focus-visible:outline-2 focus-visible:outline-offset-2"
                   >
                     <div className="flex items-center justify-between">
@@ -62,12 +67,7 @@ export default async function Home() {
                     </div>
                     <div className="flex items-end justify-between gap-3">
                       <h2 className="text-balance font-black text-2xl leading-tight tracking-tight">{campaign.name}</h2>
-                      <span
-                        aria-hidden
-                        className="shrink-0 font-black text-2xl transition-transform group-hover:translate-x-1"
-                      >
-                        →
-                      </span>
+                      <ArrowRightIcon className="shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-1" />
                     </div>
                   </Link>
                 </li>
@@ -83,9 +83,6 @@ export default async function Home() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl bg-card px-8 py-16 text-center shadow-[var(--shadow-card)]">
-      <span aria-hidden className="text-4xl">
-        🎡
-      </span>
       <p className="font-black text-foreground text-xl">No campaigns yet</p>
       <p className="max-w-sm text-balance text-muted-foreground text-sm">
         Add a campaign folder under <code className="rounded bg-muted px-1.5 py-0.5 font-mono">data/campaigns/</code> to

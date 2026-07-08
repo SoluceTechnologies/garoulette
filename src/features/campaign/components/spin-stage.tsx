@@ -13,7 +13,6 @@ type SpinStageProps = {
   dimmed: boolean;
 };
 
-/** The "ready / spinning" surface: logo, welcome, the wheel, and the spin CTA. */
 export function SpinStage({
   logoUrl,
   welcomeMessage,

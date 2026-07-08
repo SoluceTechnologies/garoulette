@@ -3,11 +3,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { SoundUrls } from "../lib/sounds";
 
-/**
- * Manages the kiosk's three audio channels. The ambient loop starts as soon as
- * the campaign loads; because browsers block audio before a user gesture, it is
- * also armed to start on the first interaction anywhere on the page.
- */
 export function useKioskSounds(urls: SoundUrls) {
   const background = useRef<HTMLAudioElement | null>(null);
   const spin = useRef<HTMLAudioElement | null>(null);
@@ -39,7 +34,7 @@ export function useKioskSounds(urls: SoundUrls) {
       for (const ev of events) document.removeEventListener(ev, onFirstInteraction);
     };
 
-    startBackground(); // works if the browser allows autoplay
+    startBackground();
     for (const ev of events) document.addEventListener(ev, onFirstInteraction);
 
     return () => {

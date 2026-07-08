@@ -6,7 +6,6 @@ type StatusScreenProps = {
   subtitle: string;
 };
 
-/** Full-screen terminal message (sold out / campaign ended). No interaction. */
 export function StatusScreen({ logoUrl, title, subtitle }: StatusScreenProps) {
   return (
     <div className="flex min-h-full w-full flex-1 flex-col items-center justify-center gap-6 px-6 py-10 text-center">

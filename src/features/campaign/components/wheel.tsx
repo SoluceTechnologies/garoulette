@@ -7,7 +7,6 @@ export type WheelPrize = {
   color?: string;
 };
 
-// Fallback wedge colours when a prize doesn't define its own.
 const PALETTE = ["#E21B3C", "#1368CE", "#26890C", "#FFA602", "#9C27B0", "#0FB9B1"];
 
 type WheelProps = {
@@ -17,11 +16,6 @@ type WheelProps = {
   onSpinEnd: () => void;
 };
 
-/**
- * Presentational wheel. Wedge `i` is centered at screen angle `i*seg` clockwise
- * from the top (the conic gradient starts at `from: -seg/2`); the parent's
- * landing math relies on that contract. Labels sit near the rim of their wedge.
- */
 export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProps) {
   const seg = 360 / prizes.length;
   const stops = prizes
@@ -30,10 +24,8 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
 
   return (
     <div className="relative aspect-square w-full max-w-[min(80vmin,30rem)]">
-      {/* Pointer at 12 o'clock */}
       <div className="-translate-x-1/2 absolute top-[-4px] left-1/2 z-20 h-0 w-0 border-transparent border-t-[30px] border-t-foreground border-r-[18px] border-l-[18px]" />
 
-      {/* Rotating wheel */}
       <div
         className="absolute inset-0 overflow-hidden rounded-full border-[6px] border-foreground shadow-[var(--shadow-pop)]"
         style={{
@@ -51,7 +43,6 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
             className="pointer-events-none absolute inset-0"
             style={{ transform: `rotate(${i * seg}deg)` }}
           >
-            {/* Label pinned near the top rim; the layer rotation carries it onto wedge i. */}
             <div className="-translate-x-1/2 absolute top-[8%] left-1/2 flex w-[34%] flex-col items-center gap-1 text-center">
               {prize.imageUrl && (
                 // biome-ignore lint/performance/noImgElement: prize images are runtime volume files, not build-time assets
@@ -72,7 +63,6 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
         ))}
       </div>
 
-      {/* Hub */}
       <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-10 h-16 w-16 rounded-full border-[6px] border-foreground bg-card shadow-[var(--shadow-card)]" />
     </div>
   );
