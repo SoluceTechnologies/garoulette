@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { action } from "@/lib/actions";
+import { getAvailability } from "../lib/availability";
 import { drawAndCommit, loadCampaign } from "../lib/storage";
 
 export const spinAction = action
@@ -9,9 +10,9 @@ export const spinAction = action
   .action(async ({ parsedInput: { slug } }) => {
     const campaign = await loadCampaign(slug);
 
-    const { expiresAt } = campaign.settings;
-    if (expiresAt && new Date(expiresAt).getTime() < Date.now()) {
-      return { status: "expired" as const };
+    const availability = getAvailability(campaign.settings);
+    if (availability !== "active") {
+      return { status: availability };
     }
 
     return drawAndCommit(slug);

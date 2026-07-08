@@ -11,7 +11,15 @@ import { SpinStage } from "./spin-stage";
 import { StatusScreen } from "./status-screen";
 import type { WheelPrize } from "./wheel";
 
-type Status = "ready" | "spinning" | "result" | "soldOut" | "expired";
+type TerminalStatus = "soldOut" | "disabled" | "notStarted" | "expired";
+type Status = "ready" | "spinning" | "result" | TerminalStatus;
+
+const TERMINAL_MESSAGES: Record<TerminalStatus, { title: string; subtitle: string }> = {
+  soldOut: { title: "All prizes have been given out 🎉", subtitle: "See you next time!" },
+  disabled: { title: "Campaign unavailable", subtitle: "This campaign is currently disabled." },
+  notStarted: { title: "Coming soon", subtitle: "This campaign hasn't started yet." },
+  expired: { title: "Campaign ended", subtitle: "Thanks for playing!" },
+};
 
 type CampaignScreenProps = {
   slug: string;
@@ -21,9 +29,13 @@ type CampaignScreenProps = {
   spinDurationMs: number;
   prizes: WheelPrize[];
   soundUrls: SoundUrls;
-  initialStatus: "ready" | "soldOut" | "expired";
+  initialStatus: "ready" | TerminalStatus;
 };
 
+/**
+ * Client orchestrator for the kiosk: owns the spin state machine and delegates
+ * all rendering to the presentational stage / reveal / status components.
+ */
 export function CampaignScreen({
   slug,
   logoUrl,
@@ -47,6 +59,10 @@ export function CampaignScreen({
 
   const landingRotation = useCallback(
     (prizeIndex: number) => {
+      // Wheel wedge i is centered at screen angle (i*seg) clockwise from top
+      // (the conic gradient starts at from:-seg/2, so wedge 0 straddles the top).
+      // Rotating the wheel by R moves that center to (i*seg + R); we want it at
+      // the top (≡ 0 mod 360), so R ≡ -i*seg. Spin forward several full turns.
       const center = prizeIndex * seg;
       const jitter = (Math.random() - 0.5) * seg * 0.6;
       const currentTurns = Math.floor(rotation / 360) + 6;
@@ -66,21 +82,20 @@ export function CampaignScreen({
     if (status !== "ready") return;
     setStatus("spinning");
     startSpin();
+    // Kick off a visible spin immediately to mask network latency.
     setRotation((r) => r + 360 * 2);
 
     const res = await spinAction({ slug });
     const data = res?.data;
 
     if (!data || res?.serverError) {
+      // Treat an unexpected failure as a soft reset back to ready.
       setStatus("ready");
       return;
     }
-    if (data.status === "expired") {
-      setStatus("expired");
-      return;
-    }
-    if (data.status === "soldOut") {
-      setStatus("soldOut");
+    if (data.status !== "win") {
+      // disabled / notStarted / expired / soldOut -> terminal screen.
+      setStatus(data.status);
       return;
     }
 
@@ -111,11 +126,9 @@ export function CampaignScreen({
     });
   }, [setSoundMuted]);
 
-  if (initialStatus === "expired" || status === "expired") {
-    return <StatusScreen logoUrl={logoUrl} title="Campaign ended" subtitle="Thanks for playing!" />;
-  }
-  if (initialStatus === "soldOut" || status === "soldOut") {
-    return <StatusScreen logoUrl={logoUrl} title="All prizes have been given out 🎉" subtitle="See you next time!" />;
+  if (status !== "ready" && status !== "spinning" && status !== "result") {
+    const message = TERMINAL_MESSAGES[status];
+    return <StatusScreen logoUrl={logoUrl} title={message.title} subtitle={message.subtitle} />;
   }
 
   return (
@@ -143,6 +156,15 @@ export function CampaignScreen({
         }}
       />
 
+      {logoUrl && (
+        // biome-ignore lint/performance/noImgElement: campaign logo is a runtime volume file, not a build-time asset
+        <img
+          src={logoUrl}
+          alt=""
+          className="pointer-events-none absolute top-4 left-4 z-20 h-10 w-auto object-contain sm:h-14"
+        />
+      )}
+
       <button
         type="button"
         aria-label={muted ? "Unmute sounds" : "Mute sounds"}
@@ -156,7 +178,6 @@ export function CampaignScreen({
       </button>
 
       <SpinStage
-        logoUrl={logoUrl}
         welcomeMessage={status === "ready" ? welcomeMessage : undefined}
         prizes={prizes}
         rotation={rotation}

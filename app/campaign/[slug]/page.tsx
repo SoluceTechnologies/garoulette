@@ -1,5 +1,12 @@
 import { notFound } from "next/navigation";
-import { computeStock, loadCampaign, prizeImageUrl, resolveSoundUrls, themeStyle } from "@/features/campaign";
+import {
+  computeStock,
+  getAvailability,
+  loadCampaign,
+  prizeImageUrl,
+  resolveSoundUrls,
+  themeStyle,
+} from "@/features/campaign";
 import { CampaignScreen } from "@/features/campaign/components/campaign-screen";
 import type { WheelPrize } from "@/features/campaign/components/wheel";
 
@@ -17,10 +24,10 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
   }
 
   const { settings } = campaign;
-  const expired = Boolean(settings.expiresAt && new Date(settings.expiresAt).getTime() < Date.now());
+  const availability = getAvailability(settings);
   const stock = computeStock(campaign.prizes, campaign.draws);
   const soldOut = stock.every((p) => p.effectiveWeight === 0);
-  const initialStatus = expired ? "expired" : soldOut ? "soldOut" : "ready";
+  const initialStatus = availability !== "active" ? availability : soldOut ? "soldOut" : "ready";
 
   const prizes: WheelPrize[] = campaign.prizes.map((p) => ({
     id: p.id,

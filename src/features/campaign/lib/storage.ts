@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { type Campaign, type Draw, drawsFileSchema, prizesFileSchema, settingsSchema } from "../types";
+import { type Availability, getAvailability } from "./availability";
 import { drawPrize } from "./draw";
 
 const DATA_ROOT = path.join(process.cwd(), "data", "campaigns");
@@ -46,6 +47,7 @@ export type CampaignSummary = {
   name: string;
   prizeCount: number;
   primaryColor?: string;
+  availability: Availability;
 };
 
 export async function listCampaigns(): Promise<CampaignSummary[]> {
@@ -73,6 +75,7 @@ export async function listCampaigns(): Promise<CampaignSummary[]> {
         name: settings.name,
         prizeCount,
         primaryColor: settings.theme?.primaryColor,
+        availability: getAvailability(settings),
       });
     } catch {}
   }

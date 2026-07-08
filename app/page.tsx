@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 // Fallback accents (wheel palette) for campaigns that don't set a theme colour.
 const ACCENTS = ["#E21B3C", "#1368CE", "#26890C", "#9C27B0", "#0FB9B1", "#EA6C1B"];
 
+const STATUS_LABEL = { disabled: "Disabled", notStarted: "Soon", expired: "Ended" } as const;
+
 /** Pick black or white ink for legible text on an arbitrary background colour,
  *  choosing whichever yields the higher WCAG contrast ratio (not just luminance). */
 function readableInk(hex: string): "#211e1a" | "#ffffff" {
@@ -46,6 +48,7 @@ export default async function Home() {
               const color = campaign.primaryColor ?? ACCENTS[i % ACCENTS.length];
               const ink = readableInk(color);
               const chipBg = ink === "#ffffff" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.1)";
+              const inactive = campaign.availability !== "active";
               return (
                 <li key={campaign.slug}>
                   <Link
@@ -55,14 +58,18 @@ export default async function Home() {
                       color: ink,
                       outlineColor: color,
                     }}
-                    className="group flex min-h-40 flex-col justify-between rounded-2xl p-6 shadow-[var(--shadow-card)] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-pop)] focus-visible:outline-2 focus-visible:outline-offset-2"
+                    className={`group flex min-h-40 flex-col justify-between rounded-2xl p-6 shadow-[var(--shadow-card)] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-pop)] focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      inactive ? "opacity-65 saturate-[0.8]" : ""
+                    }`}
                   >
                     <div className="flex items-center justify-between">
                       <span aria-hidden className="text-3xl">
                         🎡
                       </span>
                       <span className="rounded-full px-3 py-1 font-bold text-sm" style={{ backgroundColor: chipBg }}>
-                        {campaign.prizeCount} {campaign.prizeCount === 1 ? "prize" : "prizes"}
+                        {campaign.availability === "active"
+                          ? `${campaign.prizeCount} ${campaign.prizeCount === 1 ? "prize" : "prizes"}`
+                          : STATUS_LABEL[campaign.availability]}
                       </span>
                     </div>
                     <div className="flex items-end justify-between gap-3">

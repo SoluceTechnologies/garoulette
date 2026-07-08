@@ -23,7 +23,7 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
     .join(", ");
 
   return (
-    <div className="relative aspect-square w-full max-w-[min(80vmin,30rem)]">
+    <div className="relative aspect-square w-full max-w-[min(88vmin,40rem)]">
       <div className="-translate-x-1/2 absolute top-[-4px] left-1/2 z-20 h-0 w-0 border-transparent border-t-[30px] border-t-foreground border-r-[18px] border-l-[18px]" />
 
       <div

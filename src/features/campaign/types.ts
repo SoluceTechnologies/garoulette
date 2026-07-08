@@ -35,6 +35,8 @@ export const themeSchema = z.object({
 export const settingsSchema = z.object({
   name: z.string().min(1),
   theme: themeSchema.optional(),
+  enabled: z.boolean().optional(),
+  startAt: z.string().optional(),
   expiresAt: z.string().optional(),
   welcomeMessage: z.string().optional(),
   resetDelaySeconds: z.number().positive().optional(),
