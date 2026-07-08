@@ -4,8 +4,10 @@ export type WheelPrize = {
   id: string;
   name: string;
   imageUrl: string;
+  color?: string;
 };
 
+// Fallback wedge colours when a prize doesn't define its own.
 const PALETTE = ["#E21B3C", "#1368CE", "#26890C", "#FFA602", "#9C27B0", "#0FB9B1"];
 
 type WheelProps = {
@@ -22,7 +24,9 @@ type WheelProps = {
  */
 export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProps) {
   const seg = 360 / prizes.length;
-  const stops = prizes.map((_, i) => `${PALETTE[i % PALETTE.length]} ${i * seg}deg ${(i + 1) * seg}deg`).join(", ");
+  const stops = prizes
+    .map((prize, i) => `${prize.color ?? PALETTE[i % PALETTE.length]} ${i * seg}deg ${(i + 1) * seg}deg`)
+    .join(", ");
 
   return (
     <div className="relative aspect-square w-full max-w-[min(80vmin,30rem)]">

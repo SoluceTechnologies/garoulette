@@ -5,9 +5,9 @@ import { campaignDir } from "./storage";
 /** Conventional sound filenames. A campaign may drop its own copies in its
  *  `sound/` folder; otherwise the bundled defaults in `public/sounds/` are used. */
 export const SOUND_FILES = {
-  background: "son-de-fond.mp3",
-  spin: "roulette-qui-tourne.mp3",
-  result: "resultat-roulette.mp3",
+  background: "background.mp3",
+  spin: "spin.mp3",
+  result: "result.mp3",
 } as const;
 
 export type SoundUrls = {

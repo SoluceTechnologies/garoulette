@@ -26,6 +26,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
     id: p.id,
     name: p.name,
     imageUrl: prizeImageUrl(slug, p.image),
+    color: p.color,
   }));
 
   const logoUrl = settings.theme?.logo ? prizeImageUrl(slug, settings.theme.logo) : undefined;

@@ -6,6 +6,7 @@ export const prizeSchema = z.object({
   image: z.string().min(1),
   initialStock: z.number().int().nonnegative(),
   weight: z.number().nonnegative(),
+  color: z.string().optional(),
 });
 export type Prize = z.infer<typeof prizeSchema>;
 
