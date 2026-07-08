@@ -41,7 +41,14 @@ async function readDraws(slug: string): Promise<Draw[]> {
   }
 }
 
-export async function listCampaigns(): Promise<{ slug: string; name: string }[]> {
+export type CampaignSummary = {
+  slug: string;
+  name: string;
+  prizeCount: number;
+  primaryColor?: string;
+};
+
+export async function listCampaigns(): Promise<CampaignSummary[]> {
   let entries: Awaited<ReturnType<typeof fs.readdir>>;
   try {
     entries = (await fs.readdir(DATA_ROOT, {
@@ -50,13 +57,25 @@ export async function listCampaigns(): Promise<{ slug: string; name: string }[]>
   } catch {
     return [];
   }
-  const result: { slug: string; name: string }[] = [];
+  const result: CampaignSummary[] = [];
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     try {
-      const entryName = entry.name as unknown as string;
-      const settings = settingsSchema.parse(await readJson(path.join(DATA_ROOT, entryName, "settings.json")));
-      result.push({ slug: entryName, name: settings.name });
+      const dir = path.join(DATA_ROOT, entry.name as unknown as string);
+      const settings = settingsSchema.parse(await readJson(path.join(dir, "settings.json")));
+      let prizeCount = 0;
+      try {
+        const { prizes } = prizesFileSchema.parse(await readJson(path.join(dir, "prizes.json")));
+        prizeCount = prizes.length;
+      } catch {
+        // A campaign with no readable prizes still lists, just with a count of 0.
+      }
+      result.push({
+        slug: entry.name as unknown as string,
+        name: settings.name,
+        prizeCount,
+        primaryColor: settings.theme?.primaryColor,
+      });
     } catch {}
   }
   return result;
