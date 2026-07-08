@@ -37,6 +37,7 @@ export const settingsSchema = z.object({
   expiresAt: z.string().optional(),
   welcomeMessage: z.string().optional(),
   resetDelaySeconds: z.number().positive().optional(),
+  spinDurationSeconds: z.number().positive().optional(),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 

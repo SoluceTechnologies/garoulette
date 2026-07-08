@@ -37,6 +37,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
         logoUrl={logoUrl}
         welcomeMessage={settings.welcomeMessage}
         resetDelaySeconds={settings.resetDelaySeconds ?? 6}
+        spinDurationMs={(settings.spinDurationSeconds ?? 4.5) * 1000}
         prizes={prizes}
         initialStatus={initialStatus}
       />

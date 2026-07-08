@@ -4,6 +4,7 @@
     "primaryColor": "#FF6B35",
     "secondaryColor": "#1A1A2E"
   },
-  "welcomeMessage": "Spin the wheel and win! 🎉",
-  "resetDelaySeconds": 6
+  "welcomeMessage": "Tente de gagner une bugatti chiron",
+  "resetDelaySeconds": 6,
+  "spinDurationSeconds": 10
 }

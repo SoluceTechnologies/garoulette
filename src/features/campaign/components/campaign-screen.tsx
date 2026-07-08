@@ -8,8 +8,6 @@ import { SpinStage } from "./spin-stage";
 import { StatusScreen } from "./status-screen";
 import type { WheelPrize } from "./wheel";
 
-const SPIN_DURATION_MS = 4500;
-
 type Status = "ready" | "spinning" | "result" | "soldOut" | "expired";
 
 type CampaignScreenProps = {
@@ -17,6 +15,7 @@ type CampaignScreenProps = {
   logoUrl?: string;
   welcomeMessage?: string;
   resetDelaySeconds: number;
+  spinDurationMs: number;
   prizes: WheelPrize[];
   initialStatus: "ready" | "soldOut" | "expired";
 };
@@ -30,6 +29,7 @@ export function CampaignScreen({
   logoUrl,
   welcomeMessage,
   resetDelaySeconds,
+  spinDurationMs,
   prizes,
   initialStatus,
 }: CampaignScreenProps) {
@@ -122,7 +122,7 @@ export function CampaignScreen({
         welcomeMessage={status === "ready" ? welcomeMessage : undefined}
         prizes={prizes}
         rotation={rotation}
-        spinDurationMs={SPIN_DURATION_MS}
+        spinDurationMs={spinDurationMs}
         onSpinEnd={handleSpinEnd}
         showCta={status === "ready"}
         dimmed={status === "result"}
