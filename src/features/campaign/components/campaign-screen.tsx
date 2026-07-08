@@ -73,6 +73,13 @@ export function CampaignScreen({
 		setRotation(landingRotation(data.prizeIndex));
 	}, [status, slug, prizes, landingRotation]);
 
+	const reset = useCallback(() => {
+		if (resetTimer.current) clearTimeout(resetTimer.current);
+		resetTimer.current = null;
+		setWonPrize(null);
+		setStatus("ready");
+	}, []);
+
 	const handleSpinEnd = useCallback(() => {
 		if (status !== "spinning" || !pendingPrize.current) return;
 		setWonPrize(pendingPrize.current);
@@ -80,14 +87,7 @@ export function CampaignScreen({
 		setStatus("result");
 		fireConfetti();
 		resetTimer.current = setTimeout(reset, resetDelaySeconds * 1000);
-	}, [status, resetDelaySeconds]);
-
-	const reset = useCallback(() => {
-		if (resetTimer.current) clearTimeout(resetTimer.current);
-		resetTimer.current = null;
-		setWonPrize(null);
-		setStatus("ready");
-	}, []);
+	}, [status, resetDelaySeconds, reset]);
 
 	const handleTap = useCallback(() => {
 		if (status === "ready") void spin();
