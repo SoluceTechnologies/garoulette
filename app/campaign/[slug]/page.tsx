@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { computeStock, loadCampaign, prizeImageUrl, themeStyle } from "@/features/campaign";
+import { computeStock, loadCampaign, prizeImageUrl, resolveSoundUrls, themeStyle } from "@/features/campaign";
 import { CampaignScreen } from "@/features/campaign/components/campaign-screen";
 import type { WheelPrize } from "@/features/campaign/components/wheel";
 
@@ -29,6 +29,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
   }));
 
   const logoUrl = settings.theme?.logo ? prizeImageUrl(slug, settings.theme.logo) : undefined;
+  const soundUrls = await resolveSoundUrls(slug);
 
   return (
     <div className="flex min-h-full flex-1" style={themeStyle(settings)}>
@@ -39,6 +40,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
         resetDelaySeconds={settings.resetDelaySeconds ?? 6}
         spinDurationMs={(settings.spinDurationSeconds ?? 4.5) * 1000}
         prizes={prizes}
+        soundUrls={soundUrls}
         initialStatus={initialStatus}
       />
     </div>

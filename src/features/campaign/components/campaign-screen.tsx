@@ -2,10 +2,12 @@
 
 import { useCallback, useRef, useState } from "react";
 import { spinAction } from "../actions/spin";
+import type { SoundUrls } from "../lib/sounds";
 import { fireConfetti } from "./confetti";
 import { PrizeReveal } from "./prize-reveal";
 import { SpinStage } from "./spin-stage";
 import { StatusScreen } from "./status-screen";
+import { useKioskSounds } from "../hooks/use-sounds";
 import type { WheelPrize } from "./wheel";
 
 type Status = "ready" | "spinning" | "result" | "soldOut" | "expired";
@@ -17,6 +19,7 @@ type CampaignScreenProps = {
   resetDelaySeconds: number;
   spinDurationMs: number;
   prizes: WheelPrize[];
+  soundUrls: SoundUrls;
   initialStatus: "ready" | "soldOut" | "expired";
 };
 
@@ -31,13 +34,21 @@ export function CampaignScreen({
   resetDelaySeconds,
   spinDurationMs,
   prizes,
+  soundUrls,
   initialStatus,
 }: CampaignScreenProps) {
   const [status, setStatus] = useState<Status>(initialStatus);
   const [rotation, setRotation] = useState(0);
   const [wonPrize, setWonPrize] = useState<WheelPrize | null>(null);
+  const [muted, setMuted] = useState(false);
   const pendingPrize = useRef<WheelPrize | null>(null);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const {
+    startSpin,
+    endSpin,
+    setMuted: setSoundMuted,
+  } = useKioskSounds(soundUrls);
 
   const seg = prizes.length > 0 ? 360 / prizes.length : 0;
 
@@ -65,6 +76,7 @@ export function CampaignScreen({
   const spin = useCallback(async () => {
     if (status !== "ready") return;
     setStatus("spinning");
+    startSpin();
     // Kick off a visible spin immediately to mask network latency.
     setRotation((r) => r + 360 * 2);
 
@@ -87,36 +99,77 @@ export function CampaignScreen({
 
     pendingPrize.current = prizes[data.prizeIndex] ?? null;
     setRotation(landingRotation(data.prizeIndex));
-  }, [status, slug, prizes, landingRotation]);
+  }, [status, slug, prizes, landingRotation, startSpin]);
 
   const handleSpinEnd = useCallback(() => {
     if (status !== "spinning" || !pendingPrize.current) return;
     setWonPrize(pendingPrize.current);
     pendingPrize.current = null;
     setStatus("result");
+    endSpin();
     fireConfetti();
     resetTimer.current = setTimeout(reset, resetDelaySeconds * 1000);
-  }, [status, resetDelaySeconds, reset]);
+  }, [status, resetDelaySeconds, reset, endSpin]);
 
   const handleTap = useCallback(() => {
     if (status === "ready") void spin();
     else if (status === "result") reset();
   }, [status, spin, reset]);
 
+  const toggleMute = useCallback(() => {
+    setMuted((prev) => {
+      const next = !prev;
+      setSoundMuted(next);
+      return next;
+    });
+  }, [setSoundMuted]);
+
   if (initialStatus === "expired" || status === "expired") {
-    return <StatusScreen logoUrl={logoUrl} title="Campaign ended" subtitle="Thanks for playing!" />;
+    return (
+      <StatusScreen
+        logoUrl={logoUrl}
+        title="Campaign ended"
+        subtitle="Thanks for playing!"
+      />
+    );
   }
   if (initialStatus === "soldOut" || status === "soldOut") {
-    return <StatusScreen logoUrl={logoUrl} title="All prizes have been given out 🎉" subtitle="See you next time!" />;
+    return (
+      <StatusScreen
+        logoUrl={logoUrl}
+        title="All prizes have been given out 🎉"
+        subtitle="See you next time!"
+      />
+    );
   }
 
   return (
-    <button
-      type="button"
+    // biome-ignore lint/a11y/useSemanticElements: the whole kiosk surface is a tap target; a nested mute <button> can't live inside a <button>.
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label="Spin the wheel"
       onClick={handleTap}
-      disabled={status === "spinning"}
-      className="relative flex min-h-full w-full flex-1 cursor-pointer flex-col bg-background disabled:cursor-default"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleTap();
+        }
+      }}
+      className="relative flex min-h-full w-full flex-1 cursor-pointer flex-col bg-background focus:outline-none"
     >
+      <button
+        type="button"
+        aria-label={muted ? "Unmute sounds" : "Mute sounds"}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleMute();
+        }}
+        className="absolute top-4 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-card text-lg shadow-[var(--shadow-card)] transition hover:scale-105"
+      >
+        {muted ? "🔇" : "🔊"}
+      </button>
+
       <SpinStage
         logoUrl={logoUrl}
         welcomeMessage={status === "ready" ? welcomeMessage : undefined}
@@ -128,6 +181,6 @@ export function CampaignScreen({
         dimmed={status === "result"}
       />
       {status === "result" && wonPrize && <PrizeReveal prize={wonPrize} />}
-    </button>
+    </div>
   );
 }

@@ -2,6 +2,7 @@
 
 export * from "./lib/draw";
 export * from "./lib/images";
+export * from "./lib/sounds";
 export * from "./lib/stock";
 export * from "./lib/storage";
 export * from "./lib/theme";
