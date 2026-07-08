@@ -50,14 +50,14 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
 						key={prize.id}
 						className="absolute top-1/2 left-1/2 origin-left"
 						style={{
-							transform: `rotate(${i * seg + seg / 2}deg) translateX(6%)`,
+							transform: `rotate(${i * seg - 90}deg) translateX(6%)`,
 						}}
 					>
 						<div
 							className="flex w-[42%] max-w-[42%] items-center gap-2 font-bold text-white text-sm drop-shadow"
 							style={{ transform: "translateY(-50%)" }}
 						>
-							{/* eslint-disable-next-line @next/next/no-img-element */}
+							{/* biome-ignore lint/performance/noImgElement: prize images are runtime volume files, not build-time assets */}
 							<img
 								src={prize.imageUrl}
 								alt=""

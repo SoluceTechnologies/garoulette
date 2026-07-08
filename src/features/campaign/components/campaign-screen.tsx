@@ -35,10 +35,11 @@ export function CampaignScreen({
 
 	const landingRotation = useCallback(
 		(prizeIndex: number) => {
-			// Wheel segment i is centered at (i*seg + seg/2) clockwise from top.
-			// Rotating the wheel by R moves that center to (i*seg + seg/2 + R).
-			// We want it at the top (≡ 0 mod 360). Spin forward several full turns.
-			const center = prizeIndex * seg + seg / 2;
+			// Wheel wedge i is centered at screen angle (i*seg) clockwise from top
+			// (the conic gradient starts at from:-seg/2, so wedge 0 straddles the top).
+			// Rotating the wheel by R moves that center to (i*seg + R); we want it at
+			// the top (≡ 0 mod 360), so R ≡ -i*seg. Spin forward several full turns.
+			const center = prizeIndex * seg;
 			const jitter = (Math.random() - 0.5) * seg * 0.6;
 			const currentTurns = Math.floor(rotation / 360) + 6;
 			return currentTurns * 360 - center + jitter;
