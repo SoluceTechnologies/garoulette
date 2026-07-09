@@ -1,8 +1,10 @@
 {
   "name": "Demo Campaign",
   "theme": {
-    "primaryColor": "#FF6B35",
-    "secondaryColor": "#1A1A2E"
+    "primaryColor": "#7ae91a",
+    "secondaryColor": "#7f0812",
+    "logo": "ionos-cloud.webp",
+    "font": "Comfortaa"
   },
   "welcomeMessage": "Tente de gagner une bugatti chiron",
   "resetDelaySeconds": 6,

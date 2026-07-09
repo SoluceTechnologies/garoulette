@@ -2,7 +2,7 @@
 
 import { Volume2, VolumeOff } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
-import { spinAction } from "../actions/spin";
+import { spinAction } from "../actions/spin.action";
 import { useKioskSounds } from "../hooks/use-sounds";
 import type { SoundUrls } from "../lib/sounds";
 import { fireConfetti } from "../utils/confetti";
@@ -14,10 +14,22 @@ import type { WheelPrize } from "./wheel";
 type TerminalStatus = "soldOut" | "disabled" | "notStarted" | "expired";
 type Status = "ready" | "spinning" | "result" | TerminalStatus;
 
-const TERMINAL_MESSAGES: Record<TerminalStatus, { title: string; subtitle: string }> = {
-  soldOut: { title: "All prizes have been given out 🎉", subtitle: "See you next time!" },
-  disabled: { title: "Campaign unavailable", subtitle: "This campaign is currently disabled." },
-  notStarted: { title: "Coming soon", subtitle: "This campaign hasn't started yet." },
+const TERMINAL_MESSAGES: Record<
+  TerminalStatus,
+  { title: string; subtitle: string }
+> = {
+  soldOut: {
+    title: "All prizes have been given out 🎉",
+    subtitle: "See you next time!",
+  },
+  disabled: {
+    title: "Campaign unavailable",
+    subtitle: "This campaign is currently disabled.",
+  },
+  notStarted: {
+    title: "Coming soon",
+    subtitle: "This campaign hasn't started yet.",
+  },
   expired: { title: "Campaign ended", subtitle: "Thanks for playing!" },
 };
 
@@ -32,10 +44,6 @@ type CampaignScreenProps = {
   initialStatus: "ready" | TerminalStatus;
 };
 
-/**
- * Client orchestrator for the kiosk: owns the spin state machine and delegates
- * all rendering to the presentational stage / reveal / status components.
- */
 export function CampaignScreen({
   slug,
   logoUrl,
@@ -53,7 +61,11 @@ export function CampaignScreen({
   const pendingPrize = useRef<WheelPrize | null>(null);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { startSpin, endSpin, setMuted: setSoundMuted } = useKioskSounds(soundUrls);
+  const {
+    startSpin,
+    endSpin,
+    setMuted: setSoundMuted,
+  } = useKioskSounds(soundUrls);
 
   const seg = prizes.length > 0 ? 360 / prizes.length : 0;
 
@@ -128,7 +140,13 @@ export function CampaignScreen({
 
   if (status !== "ready" && status !== "spinning" && status !== "result") {
     const message = TERMINAL_MESSAGES[status];
-    return <StatusScreen logoUrl={logoUrl} title={message.title} subtitle={message.subtitle} />;
+    return (
+      <StatusScreen
+        logoUrl={logoUrl}
+        title={message.title}
+        subtitle={message.subtitle}
+      />
+    );
   }
 
   return (

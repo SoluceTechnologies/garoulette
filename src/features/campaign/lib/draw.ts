@@ -1,4 +1,4 @@
-import type { Draw, Prize } from "../types";
+import type { Draw, Prize } from "@/features/campaign/schemas/campaign.schema";
 import { computeStock } from "./stock";
 
 export type DrawResult = {

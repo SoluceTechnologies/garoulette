@@ -1,7 +1,4 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-	/* config options here */
-};
+import "./env";
+import { nextConfig } from "./config/next";
 
 export default nextConfig;

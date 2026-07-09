@@ -1,8 +1,36 @@
 {
   "prizes": [
-    { "id": "prize-001", "name": "Headphones", "image": "/images/headphones.png", "initialStock": 3, "weight": 10, "color": "#7B2FF7" },
-    { "id": "prize-002", "name": "20€ Voucher", "image": "/images/voucher.png", "initialStock": 10, "weight": 30, "color": "#00A6A6" },
-    { "id": "prize-003", "name": "Sticker Pack", "image": "/images/stickers.png", "initialStock": 50, "weight": 40, "color": "#F25C05" },
-    { "id": "prize-004", "name": "Mug", "image": "/images/mug.png", "initialStock": 5, "weight": 20, "color": "#E8386D" }
+    {
+      "id": "prize-001",
+      "name": "Headphones",
+      "image": "/images/headphones.png",
+      "initialStock": 3,
+      "weight": 10,
+      "color": "#7B2FF7"
+    },
+    {
+      "id": "prize-002",
+      "name": "20€ Voucher",
+      "image": "/images/voucher.png",
+      "initialStock": 10,
+      "weight": 30,
+      "color": "#00A6A6"
+    },
+    {
+      "id": "prize-003",
+      "name": "Stickers en 4K FULL HD",
+      "image": "/images/stickers.png",
+      "initialStock": 50,
+      "weight": 40,
+      "color": "#F25C05"
+    },
+    {
+      "id": "prize-004",
+      "name": "Mug",
+      "image": "/images/mug.png",
+      "initialStock": 5,
+      "weight": 20,
+      "color": "#E8386D"
+    }
   ]
 }

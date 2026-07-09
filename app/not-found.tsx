@@ -14,7 +14,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/"
-        className="mt-2 rounded-full bg-primary px-8 py-4 font-black text-primary-foreground uppercase tracking-wide shadow-[var(--shadow-pop)] transition duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+        className="mt-2 rounded-full bg-primary px-8 py-4 font-black text-primary-foreground uppercase tracking-wide shadow-(--shadow-pop) transition duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
       >
         Back to campaigns
       </Link>

@@ -43,6 +43,4 @@ next-env.d.ts
 docs/
 .superpowers
 .claude
-
-# Keep the seed demo campaign; real event data is mounted at runtime.
 !data/campaigns/demo/

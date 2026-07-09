@@ -2,8 +2,14 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { type Campaign, type Draw, drawsFileSchema, prizesFileSchema, settingsSchema } from "../types";
+import {
+  type Draw,
+  drawsFileSchema,
+  prizesFileSchema,
+  settingsSchema,
+} from "@/features/campaign/schemas/campaign.schema";
 import { type Availability, getAvailability } from "./availability";
+import type { Campaign } from "@/features/campaign/types";
 import { drawPrize } from "./draw";
 
 const DATA_ROOT = path.join(process.cwd(), "data", "campaigns");
@@ -17,7 +23,11 @@ async function readJson(file: string): Promise<unknown> {
   return JSON.parse(raw);
 }
 
-async function readAndParse<T>(schema: z.ZodType<T>, file: string, label: string): Promise<T> {
+async function readAndParse<T>(
+  schema: z.ZodType<T>,
+  file: string,
+  label: string,
+): Promise<T> {
   const raw = await fs.readFile(file, "utf8");
   let json: unknown;
   try {
@@ -64,10 +74,14 @@ export async function listCampaigns(): Promise<CampaignSummary[]> {
     if (!entry.isDirectory()) continue;
     try {
       const dir = path.join(DATA_ROOT, entry.name as unknown as string);
-      const settings = settingsSchema.parse(await readJson(path.join(dir, "settings.json")));
+      const settings = settingsSchema.parse(
+        await readJson(path.join(dir, "settings.json")),
+      );
       let prizeCount = 0;
       try {
-        const { prizes } = prizesFileSchema.parse(await readJson(path.join(dir, "prizes.json")));
+        const { prizes } = prizesFileSchema.parse(
+          await readJson(path.join(dir, "prizes.json")),
+        );
         prizeCount = prizes.length;
       } catch {}
       result.push({
@@ -84,8 +98,16 @@ export async function listCampaigns(): Promise<CampaignSummary[]> {
 
 export async function loadCampaign(slug: string): Promise<Campaign> {
   const dir = campaignDir(slug);
-  const settings = await readAndParse(settingsSchema, path.join(dir, "settings.json"), "settings.json");
-  const { prizes } = await readAndParse(prizesFileSchema, path.join(dir, "prizes.json"), "prizes.json");
+  const settings = await readAndParse(
+    settingsSchema,
+    path.join(dir, "settings.json"),
+    "settings.json",
+  );
+  const { prizes } = await readAndParse(
+    prizesFileSchema,
+    path.join(dir, "prizes.json"),
+    "prizes.json",
+  );
   const draws = await readDraws(slug);
   return { slug, settings, prizes, draws };
 }
@@ -106,7 +128,10 @@ async function acquireFileLock(lockFile: string, retries = 100): Promise<void> {
   throw new Error(`Could not acquire lock: ${lockFile}`);
 }
 
-async function withCampaignLock<T>(slug: string, fn: () => Promise<T>): Promise<T> {
+async function withCampaignLock<T>(
+  slug: string,
+  fn: () => Promise<T>,
+): Promise<T> {
   const prev = locks.get(slug) ?? Promise.resolve();
   const run = (async () => {
     await prev.catch(() => {});
@@ -131,7 +156,9 @@ export type CommitResult =
 
 export async function drawAndCommit(slug: string): Promise<CommitResult> {
   return withCampaignLock(slug, async () => {
-    const { prizes } = prizesFileSchema.parse(await readJson(path.join(campaignDir(slug), "prizes.json")));
+    const { prizes } = prizesFileSchema.parse(
+      await readJson(path.join(campaignDir(slug), "prizes.json")),
+    );
     const draws = await readDraws(slug);
 
     const result = drawPrize(prizes, draws);
@@ -146,10 +173,16 @@ export async function drawAndCommit(slug: string): Promise<CommitResult> {
 
     const file = path.join(campaignDir(slug), "draws.json");
     const tmp = `${file}.tmp`;
-    await fs.writeFile(tmp, JSON.stringify({ draws: nextDraws }, null, 2), "utf8");
+    await fs.writeFile(
+      tmp,
+      JSON.stringify({ draws: nextDraws }, null, 2),
+      "utf8",
+    );
     await fs.rename(tmp, file);
 
-    const usedAfter = nextDraws.filter((d) => d.prizeId === result.prize.id).length;
+    const usedAfter = nextDraws.filter(
+      (d) => d.prizeId === result.prize.id,
+    ).length;
     const remaining = result.prize.initialStock - usedAfter;
 
     return {

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Settings } from "../types";
+import type { Settings } from "@/features/campaign/schemas/campaign.schema";
 
 export const DEFAULT_THEME = {
   primaryColor: "#FF6B35",
