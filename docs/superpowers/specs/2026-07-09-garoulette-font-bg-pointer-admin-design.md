@@ -124,14 +124,27 @@ All slug-validated (`^[a-z0-9-]+$`, reject traversal), atomic (tmp+rename), draw
 - `resetDraws(slug)` — write `{ "draws": [] }` (locked).
 - `saveImage(slug, filename, bytes)` — sanitize filename (basename, safe charset, allowed ext png/jpg/jpeg/webp), size cap (e.g. 5 MB), write into `images/`, return stored filename.
 
-### 4e. Server actions (`actions/*.action.ts`, next-safe-action + zod, each `requireAdmin()` first)
+### 4e. Server actions (`actions/*.action.ts`, next-safe-action + zod)
 
-- `login.action.ts` — `{ password }` → `verifyPassword` → `createSession` → redirect `/admin` (no requireAdmin).
-- `logout.action.ts` — `deleteSession` → redirect `/admin/login`.
-- `campaign.action.ts` — `createCampaign`, `deleteCampaign`, `saveCampaignSettings` (settings+theme incl backgroundColor/font).
-- `prizes.action.ts` — `savePrizes` (full prize list replace: add/edit/remove).
-- `image.action.ts` — FormData upload (logo or prize image) → `saveImage`, returns filename; mime + size validated.
-- `draws.action.ts` — `resetDraws`.
+**Authenticated base client** `src/features/admin/lib/safe-action.ts`:
+```ts
+import { action } from "@/lib/actions";
+import { requireAdmin } from "./dal";
+
+// requireAdmin() throws/redirects on missing session; injects session into ctx.
+export const adminAction = action.use(async ({ next }) => {
+  const session = await requireAdmin();
+  return next({ ctx: { session } });
+});
+```
+Every mutating admin action is built from `adminAction` (auth enforced in middleware, not repeated per action). `login`/`logout` use the base `action` (unauthenticated). This is the feature-based mirror of how `campaign` uses shared `@/lib/actions`; the authenticated variant belongs to the admin feature.
+
+- `login.action.ts` — base `action`; `{ password }` → `verifyPassword` → `createSession` → redirect `/admin`.
+- `logout.action.ts` — base `action`; `deleteSession` → redirect `/admin/login`.
+- `campaign.action.ts` (`adminAction`) — `createCampaign`, `deleteCampaign`, `saveCampaignSettings` (settings+theme incl backgroundColor/font).
+- `prizes.action.ts` (`adminAction`) — `savePrizes` (full prize list replace: add/edit/remove).
+- `image.action.ts` (`adminAction`) — FormData upload (logo or prize image) → `saveImage`, returns filename; mime + size validated.
+- `draws.action.ts` (`adminAction`) — `resetDraws`.
 - `revalidatePath` on affected admin + `/campaign/[slug]` routes after writes.
 
 ### 4f. UI
