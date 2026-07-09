@@ -28,6 +28,7 @@ export const drawsFileSchema = z.object({
 export const themeSchema = z.object({
   primaryColor: z.string().optional(),
   secondaryColor: z.string().optional(),
+  backgroundColor: z.string().optional(),
   logo: z.string().optional(),
   font: z.string().optional(),
 });

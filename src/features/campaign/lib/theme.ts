@@ -8,8 +8,12 @@ export const DEFAULT_THEME = {
 
 export function themeStyle(settings: Settings): CSSProperties {
   const theme = settings.theme ?? {};
-  return {
+  const style: Record<string, string> = {
     "--primary": theme.primaryColor ?? DEFAULT_THEME.primaryColor,
     "--secondary": theme.secondaryColor ?? DEFAULT_THEME.secondaryColor,
-  } as CSSProperties;
+  };
+  if (theme.backgroundColor) {
+    style["--background"] = theme.backgroundColor;
+  }
+  return style as CSSProperties;
 }
