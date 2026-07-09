@@ -4,6 +4,7 @@ import { Volume2, VolumeOff } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { spinAction } from "../actions/spin.action";
 import { useKioskSounds } from "../hooks/use-sounds";
+import { landingRotationFor } from "../lib/landing";
 import type { SoundUrls } from "../lib/sounds";
 import { fireConfetti } from "../utils/confetti";
 import { PrizeReveal } from "./prize-reveal";
@@ -14,10 +15,7 @@ import type { WheelPrize } from "./wheel";
 type TerminalStatus = "soldOut" | "disabled" | "notStarted" | "expired";
 type Status = "ready" | "spinning" | "result" | TerminalStatus;
 
-const TERMINAL_MESSAGES: Record<
-  TerminalStatus,
-  { title: string; subtitle: string }
-> = {
+const TERMINAL_MESSAGES: Record<TerminalStatus, { title: string; subtitle: string }> = {
   soldOut: {
     title: "All prizes have been given out 🎉",
     subtitle: "See you next time!",
@@ -61,25 +59,12 @@ export function CampaignScreen({
   const pendingPrize = useRef<WheelPrize | null>(null);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const {
-    startSpin,
-    endSpin,
-    setMuted: setSoundMuted,
-  } = useKioskSounds(soundUrls);
+  const { startSpin, endSpin, setMuted: setSoundMuted } = useKioskSounds(soundUrls);
 
   const seg = prizes.length > 0 ? 360 / prizes.length : 0;
 
   const landingRotation = useCallback(
-    (prizeIndex: number) => {
-      // Wheel wedge i is centered at screen angle (i*seg) clockwise from top
-      // (the conic gradient starts at from:-seg/2, so wedge 0 straddles the top).
-      // Rotating the wheel by R moves that center to (i*seg + R); we want it at
-      // the top (≡ 0 mod 360), so R ≡ -i*seg. Spin forward several full turns.
-      const center = prizeIndex * seg;
-      const jitter = (Math.random() - 0.5) * seg * 0.6;
-      const currentTurns = Math.floor(rotation / 360) + 6;
-      return currentTurns * 360 - center + jitter;
-    },
+    (prizeIndex: number) => landingRotationFor(prizeIndex, seg, rotation),
     [rotation, seg],
   );
 
@@ -140,13 +125,7 @@ export function CampaignScreen({
 
   if (status !== "ready" && status !== "spinning" && status !== "result") {
     const message = TERMINAL_MESSAGES[status];
-    return (
-      <StatusScreen
-        logoUrl={logoUrl}
-        title={message.title}
-        subtitle={message.subtitle}
-      />
-    );
+    return <StatusScreen logoUrl={logoUrl} title={message.title} subtitle={message.subtitle} />;
   }
 
   return (
