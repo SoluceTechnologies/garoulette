@@ -5,11 +5,13 @@ import { z } from "zod";
 import {
   type Draw,
   drawsFileSchema,
+  type Prize,
   prizesFileSchema,
+  type Settings,
   settingsSchema,
 } from "@/features/campaign/schemas/campaign.schema";
-import { type Availability, getAvailability } from "./availability";
 import type { Campaign } from "@/features/campaign/types";
+import { type Availability, getAvailability } from "./availability";
 import { drawPrize } from "./draw";
 
 const DATA_ROOT = path.join(process.cwd(), "data", "campaigns");
@@ -18,16 +20,26 @@ export function campaignDir(slug: string): string {
   return path.join(DATA_ROOT, slug);
 }
 
+const SLUG_RE = /^[a-z0-9-]+$/;
+
+export function assertValidSlug(slug: string): void {
+  if (!SLUG_RE.test(slug)) {
+    throw new Error(`Invalid campaign slug: ${slug}`);
+  }
+}
+
+async function atomicWrite(file: string, data: string): Promise<void> {
+  const tmp = `${file}.tmp`;
+  await fs.writeFile(tmp, data, "utf8");
+  await fs.rename(tmp, file);
+}
+
 async function readJson(file: string): Promise<unknown> {
   const raw = await fs.readFile(file, "utf8");
   return JSON.parse(raw);
 }
 
-async function readAndParse<T>(
-  schema: z.ZodType<T>,
-  file: string,
-  label: string,
-): Promise<T> {
+async function readAndParse<T>(schema: z.ZodType<T>, file: string, label: string): Promise<T> {
   const raw = await fs.readFile(file, "utf8");
   let json: unknown;
   try {
@@ -74,14 +86,10 @@ export async function listCampaigns(): Promise<CampaignSummary[]> {
     if (!entry.isDirectory()) continue;
     try {
       const dir = path.join(DATA_ROOT, entry.name as unknown as string);
-      const settings = settingsSchema.parse(
-        await readJson(path.join(dir, "settings.json")),
-      );
+      const settings = settingsSchema.parse(await readJson(path.join(dir, "settings.json")));
       let prizeCount = 0;
       try {
-        const { prizes } = prizesFileSchema.parse(
-          await readJson(path.join(dir, "prizes.json")),
-        );
+        const { prizes } = prizesFileSchema.parse(await readJson(path.join(dir, "prizes.json")));
         prizeCount = prizes.length;
       } catch {}
       result.push({
@@ -98,16 +106,8 @@ export async function listCampaigns(): Promise<CampaignSummary[]> {
 
 export async function loadCampaign(slug: string): Promise<Campaign> {
   const dir = campaignDir(slug);
-  const settings = await readAndParse(
-    settingsSchema,
-    path.join(dir, "settings.json"),
-    "settings.json",
-  );
-  const { prizes } = await readAndParse(
-    prizesFileSchema,
-    path.join(dir, "prizes.json"),
-    "prizes.json",
-  );
+  const settings = await readAndParse(settingsSchema, path.join(dir, "settings.json"), "settings.json");
+  const { prizes } = await readAndParse(prizesFileSchema, path.join(dir, "prizes.json"), "prizes.json");
   const draws = await readDraws(slug);
   return { slug, settings, prizes, draws };
 }
@@ -128,10 +128,7 @@ async function acquireFileLock(lockFile: string, retries = 100): Promise<void> {
   throw new Error(`Could not acquire lock: ${lockFile}`);
 }
 
-async function withCampaignLock<T>(
-  slug: string,
-  fn: () => Promise<T>,
-): Promise<T> {
+async function withCampaignLock<T>(slug: string, fn: () => Promise<T>): Promise<T> {
   const prev = locks.get(slug) ?? Promise.resolve();
   const run = (async () => {
     await prev.catch(() => {});
@@ -156,9 +153,7 @@ export type CommitResult =
 
 export async function drawAndCommit(slug: string): Promise<CommitResult> {
   return withCampaignLock(slug, async () => {
-    const { prizes } = prizesFileSchema.parse(
-      await readJson(path.join(campaignDir(slug), "prizes.json")),
-    );
+    const { prizes } = prizesFileSchema.parse(await readJson(path.join(campaignDir(slug), "prizes.json")));
     const draws = await readDraws(slug);
 
     const result = drawPrize(prizes, draws);
@@ -173,16 +168,10 @@ export async function drawAndCommit(slug: string): Promise<CommitResult> {
 
     const file = path.join(campaignDir(slug), "draws.json");
     const tmp = `${file}.tmp`;
-    await fs.writeFile(
-      tmp,
-      JSON.stringify({ draws: nextDraws }, null, 2),
-      "utf8",
-    );
+    await fs.writeFile(tmp, JSON.stringify({ draws: nextDraws }, null, 2), "utf8");
     await fs.rename(tmp, file);
 
-    const usedAfter = nextDraws.filter(
-      (d) => d.prizeId === result.prize.id,
-    ).length;
+    const usedAfter = nextDraws.filter((d) => d.prizeId === result.prize.id).length;
     const remaining = result.prize.initialStock - usedAfter;
 
     return {
@@ -192,4 +181,71 @@ export async function drawAndCommit(slug: string): Promise<CommitResult> {
       remaining,
     };
   });
+}
+
+export async function saveSettings(slug: string, settings: Settings): Promise<void> {
+  assertValidSlug(slug);
+  const parsed = settingsSchema.parse(settings);
+  await atomicWrite(path.join(campaignDir(slug), "settings.json"), JSON.stringify(parsed, null, 2));
+}
+
+export async function savePrizes(slug: string, prizes: Prize[]): Promise<void> {
+  assertValidSlug(slug);
+  const parsed = prizesFileSchema.parse({ prizes });
+  await atomicWrite(path.join(campaignDir(slug), "prizes.json"), JSON.stringify(parsed, null, 2));
+}
+
+export async function createCampaign(slug: string, settings: Settings): Promise<void> {
+  assertValidSlug(slug);
+  const dir = campaignDir(slug);
+  try {
+    await fs.access(dir);
+    throw new Error(`Campaign already exists: ${slug}`);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+  }
+  await fs.mkdir(path.join(dir, "images"), { recursive: true });
+  await saveSettings(slug, settings);
+  await savePrizes(slug, []);
+  await atomicWrite(path.join(dir, "draws.json"), JSON.stringify({ draws: [] }, null, 2));
+}
+
+export async function deleteCampaign(slug: string): Promise<void> {
+  assertValidSlug(slug);
+  await fs.rm(campaignDir(slug), { recursive: true, force: true });
+}
+
+export async function resetDraws(slug: string): Promise<void> {
+  assertValidSlug(slug);
+  await withCampaignLock(slug, async () => {
+    await atomicWrite(path.join(campaignDir(slug), "draws.json"), JSON.stringify({ draws: [] }, null, 2));
+  });
+}
+
+const ALLOWED_IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".webp"]);
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+export async function saveImage(slug: string, originalName: string, bytes: Buffer): Promise<string> {
+  assertValidSlug(slug);
+  if (bytes.length > MAX_IMAGE_BYTES) {
+    throw new Error("Image too large (max 5MB)");
+  }
+  const ext = path.extname(originalName).toLowerCase();
+  if (!ALLOWED_IMAGE_EXT.has(ext)) {
+    throw new Error(`Unsupported image type: ${ext}`);
+  }
+  const base =
+    path
+      .basename(originalName, path.extname(originalName))
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "image";
+  const filename = `${base}${ext}`;
+  await fs.mkdir(path.join(campaignDir(slug), "images"), { recursive: true });
+  const dest = path.join(campaignDir(slug), "images", filename);
+  const tmp = `${dest}.tmp`;
+  await fs.writeFile(tmp, bytes);
+  await fs.rename(tmp, dest);
+  return filename;
 }
