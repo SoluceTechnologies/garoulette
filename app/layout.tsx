@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { projectConfig } from "@/config/project";
+import { campaignFontVariables } from "@/features/campaign/lib/fonts";
 import { cn } from "@/lib/utils";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" });
@@ -36,6 +37,7 @@ export default function RootLayout({
         geistMono.variable,
         "font-sans",
         outfit.variable,
+        campaignFontVariables,
       )}
     >
       <body className="min-h-full flex flex-col">{children}</body>
