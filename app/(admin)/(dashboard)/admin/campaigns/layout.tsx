@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="flex items-center justify-between border-border border-b px-6 py-4">
-        <Link href="/admin" className="font-bold text-lg">
+        <Link href="/admin/campaigns" className="font-bold text-lg">
           Garoulette Admin
         </Link>
         <LogoutButton />

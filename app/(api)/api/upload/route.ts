@@ -4,13 +4,6 @@ import { saveImage } from "@/features/campaign/lib/storage";
 
 export const runtime = "nodejs";
 
-/**
- * Plain Route Handler for image uploads (bypasses next-safe-action/Server Actions).
- *
- * Server Actions cap request bodies at 1MB by default (Next.js `serverActions.bodySizeLimit`),
- * which is below the 5MB image cap enforced by `saveImage`. A Route Handler has no such
- * framework-level limit, so it is used here instead of a `"use server"` action.
- */
 export async function POST(req: Request) {
   await requireAdmin();
 

@@ -10,5 +10,5 @@ export const loginAction = action.inputSchema(loginSchema).action(async ({ parse
   const ok = await verifyPassword(password);
   if (!ok) throw new Error("Invalid password");
   await createSession();
-  redirect("/admin");
+  redirect("/admin/campaigns");
 });

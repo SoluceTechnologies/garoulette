@@ -8,6 +8,6 @@ import { SESSION_COOKIE, verifySessionToken } from "./session";
 export const requireAdmin = cache(async (): Promise<{ role: "admin" }> => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   const session = await verifySessionToken(token);
-  if (!session) redirect("/admin/login");
+  if (!session) redirect("/admin");
   return session;
 });

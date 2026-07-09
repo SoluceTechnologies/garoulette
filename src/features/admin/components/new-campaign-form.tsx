@@ -1,46 +1,58 @@
 "use client";
 
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useZodForm } from "@/hooks/use-zod-form";
 import { createCampaignAction } from "../actions/campaign.action";
+import { createCampaignSchema } from "../schemas/admin.schema";
 
 export function NewCampaignForm() {
-  const [slug, setSlug] = useState("");
-  const [name, setName] = useState("");
+  const form = useZodForm({
+    schema: createCampaignSchema,
+    defaultValues: { slug: "", name: "" },
+  });
+
   const { execute, isPending, result } = useAction(createCampaignAction);
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        execute({ slug, name });
-      }}
-      className="flex max-w-md flex-col gap-4"
-    >
-      <label className="flex flex-col gap-1">
-        <span className="font-medium text-sm">Slug</span>
-        <input
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          placeholder="my-campaign"
-          className="rounded-md border border-border px-3 py-2"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit((data) => execute(data))} className="flex max-w-md flex-col gap-4">
+        <FormField
+          control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Slug</FormLabel>
+              <FormControl>
+                <Input placeholder="my-campaign" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </label>
-      <label className="flex flex-col gap-1">
-        <span className="font-medium text-sm">Name</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="My Campaign"
-          className="rounded-md border border-border px-3 py-2"
+
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="My Campaign" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </label>
-      {result?.serverError && <p className="text-destructive text-sm">{result.serverError}</p>}
-      {result?.validationErrors && <p className="text-destructive text-sm">Check slug/name format.</p>}
-      <Button type="submit" disabled={isPending}>
-        Create
-      </Button>
-    </form>
+
+        {result?.serverError && <p className="text-destructive text-sm">{result.serverError}</p>}
+
+        <Button type="submit" disabled={isPending}>
+          Create
+        </Button>
+      </form>
+    </Form>
   );
 }

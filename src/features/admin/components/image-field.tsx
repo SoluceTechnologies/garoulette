@@ -12,7 +12,7 @@ type Props = {
 type UploadResponse = { filename?: string; error?: string };
 
 /**
- * Uploads via a plain Route Handler (`/admin/api/upload`) rather than a next-safe-action
+ * Uploads via a plain Route Handler (`/api/upload`) rather than a next-safe-action
  * Server Action: Server Actions cap request bodies at 1MB by default, below the 5MB image
  * cap enforced by `saveImage`. The public contract (`slug`/`value`/`onChange`/`label`) is
  * transport-agnostic so consumers don't need to care.
@@ -40,7 +40,7 @@ export function ImageField({ slug, value, onChange, label }: Props) {
             const formData = new FormData();
             formData.append("slug", slug);
             formData.append("file", file);
-            const res = await fetch("/admin/api/upload", {
+            const res = await fetch("/api/upload", {
               method: "POST",
               body: formData,
             });

@@ -26,6 +26,6 @@ export const deleteCampaignAction = adminAction
   .inputSchema(slugOnlySchema)
   .action(async ({ parsedInput: { slug } }) => {
     await deleteCampaign(slug);
-    revalidatePath("/admin");
-    redirect("/admin");
+    revalidatePath("/admin/campaigns");
+    redirect("/admin/campaigns");
   });

@@ -8,7 +8,7 @@ import { slugOnlySchema } from "../schemas/admin.schema";
 export const resetDrawsAction = adminAction.inputSchema(slugOnlySchema).action(async ({ parsedInput: { slug } }) => {
   await resetDraws(slug);
   revalidatePath(`/admin/campaigns/${slug}`);
-  revalidatePath("/admin");
+  revalidatePath("/admin/campaigns");
   revalidatePath(`/campaign/${slug}`);
   return { ok: true };
 });

@@ -6,5 +6,5 @@ import { deleteSession } from "../lib/session";
 
 export const logoutAction = action.action(async () => {
   await deleteSession();
-  redirect("/admin/login");
+  redirect("/admin");
 });
