@@ -7,14 +7,7 @@ export type WheelPrize = {
   color?: string;
 };
 
-const PALETTE = [
-  "#E21B3C",
-  "#1368CE",
-  "#26890C",
-  "#FFA602",
-  "#9C27B0",
-  "#0FB9B1",
-];
+const PALETTE = ["#E21B3C", "#1368CE", "#26890C", "#FFA602", "#9C27B0", "#0FB9B1"];
 
 type WheelProps = {
   prizes: WheelPrize[];
@@ -23,18 +16,10 @@ type WheelProps = {
   onSpinEnd: () => void;
 };
 
-export function Wheel({
-  prizes,
-  rotation,
-  spinDurationMs,
-  onSpinEnd,
-}: WheelProps) {
+export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProps) {
   const seg = 360 / prizes.length;
   const stops = prizes
-    .map(
-      (prize, i) =>
-        `${prize.color ?? PALETTE[i % PALETTE.length]} ${i * seg}deg ${(i + 1) * seg}deg`,
-    )
+    .map((prize, i) => `${prize.color ?? PALETTE[i % PALETTE.length]} ${i * seg}deg ${(i + 1) * seg}deg`)
     .join(", ");
 
   return (
@@ -64,8 +49,7 @@ export function Wheel({
                   alt=""
                   className="h-9 w-9 shrink-0 rounded object-contain"
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display =
-                      "none";
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
                   }}
                 />
               )}

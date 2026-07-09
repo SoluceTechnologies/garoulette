@@ -34,18 +34,11 @@ export function SpinStage({
         </h1>
       )}
 
-      <Wheel
-        prizes={prizes}
-        rotation={rotation}
-        spinDurationMs={spinDurationMs}
-        onSpinEnd={onSpinEnd}
-      />
+      <Wheel prizes={prizes} rotation={rotation} spinDurationMs={spinDurationMs} onSpinEnd={onSpinEnd} />
 
       <span
         className={`rounded-full bg-primary px-12 py-5 font-black text-primary-foreground text-xl uppercase tracking-wide shadow-[var(--shadow-pop)] transition-all duration-300 sm:text-2xl ${
-          showCta
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-2 opacity-0"
+          showCta ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
         }`}
       >
         Tap to spin

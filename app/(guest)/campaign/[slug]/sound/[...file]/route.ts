@@ -5,21 +5,17 @@ import { campaignDir } from "@/features/campaign/lib/storage";
 export const runtime = "nodejs";
 
 const MIME: Record<string, string> = {
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".webp": "image/webp",
-  ".gif": "image/gif",
-  ".svg": "image/svg+xml",
+  ".mp3": "audio/mpeg",
+  ".wav": "audio/wav",
+  ".ogg": "audio/ogg",
+  ".m4a": "audio/mp4",
+  ".aac": "audio/aac",
 };
 
-export async function GET(
-  _req: Request,
-  ctx: RouteContext<"/campaign/[slug]/images/[...file]">,
-) {
+export async function GET(_req: Request, ctx: RouteContext<"/campaign/[slug]/sound/[...file]">) {
   const { slug, file } = await ctx.params;
   const rel = Array.isArray(file) ? file.join("/") : file;
-  const dir = path.join(campaignDir(slug), "images");
+  const dir = path.join(campaignDir(slug), "sound");
   const target = path.join(dir, rel);
 
   if (target !== dir && !target.startsWith(dir + path.sep)) {
@@ -28,8 +24,7 @@ export async function GET(
 
   try {
     const data = await fs.readFile(target);
-    const type =
-      MIME[path.extname(target).toLowerCase()] ?? "application/octet-stream";
+    const type = MIME[path.extname(target).toLowerCase()] ?? "application/octet-stream";
     return new Response(new Uint8Array(data), {
       headers: {
         "Content-Type": type,
