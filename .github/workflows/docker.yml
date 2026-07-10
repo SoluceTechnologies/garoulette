@@ -12,7 +12,7 @@ on:
       image_name:
         required: false
         type: string
-        default: "soluce-technologies/garoulette"
+        default: "solucetechnologies/garoulette"
       add_latest:
         required: false
         type: boolean
