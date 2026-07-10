@@ -77,7 +77,7 @@ The fastest way to run Garoulette — a single container, no Node.js or pnpm req
 ```yaml
 services:
   garoulette:
-    image: soluce-technologies/garoulette:latest
+    image: solucetechnologies/garoulette:latest
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -94,7 +94,7 @@ volumes:
 
 > `APP_PASSWORD` is a bcrypt hash. Generate one and use the Compose line it prints (with `$$`):
 > ```bash
-> docker run --rm soluce-technologies/garoulette:latest node scripts/hash-password.mjs "your-password"
+> docker run --rm solucetechnologies/garoulette:latest node scripts/hash-password.mjs "your-password"
 > ```
 
 ### 2. Start the stack
@@ -123,7 +123,7 @@ docker run -d \
   -e APP_URL=http://localhost:3000 \
   -e APP_PASSWORD='<bcrypt-hash>' \
   -e APP_SECRET='<random-32+-chars>' \
-  soluce-technologies/garoulette:latest
+  solucetechnologies/garoulette:latest
 ```
 
 ---
@@ -133,7 +133,7 @@ docker run -d \
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/soluce-technologies/garoulette
+git clone https://github.com/SoluceTechnologies/garoulette
 cd garoulette
 ```
 
