@@ -58,6 +58,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.10",
     "@tailwindcss/postcss": "^4",
+    "@release-it/bumper": "^7.0.6",
+    "@release-it/conventional-changelog": "^10.0.6",
     "@types/bcryptjs": "^3.0.0",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
