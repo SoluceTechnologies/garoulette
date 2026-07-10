@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { CampaignTabs } from "@/features/admin/components/campaigns/campaign-tabs";
 import { CopyPublicLinkButton } from "@/features/admin/components/campaigns/copy-public-link-button";
 import { DangerZone } from "@/features/admin/components/campaigns/danger-zone";
+import { ExportMenu } from "@/features/admin/components/campaigns/export-menu";
+import { ImportThemeButton } from "@/features/admin/components/campaigns/import-theme-button";
 import { StatsTable } from "@/features/admin/components/campaigns/stats.table";
 import { PrizesEditor } from "@/features/admin/components/forms/prizes.form";
 import { SettingsForm } from "@/features/admin/components/forms/settings.form";
@@ -19,9 +21,7 @@ import { loadCampaign } from "@/features/campaign/lib/storage";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditCampaignPage({
-  params,
-}: PageProps<"/admin/campaigns/[slug]">) {
+export default async function EditCampaignPage({ params }: PageProps<"/admin/campaigns/[slug]">) {
   const { slug } = await params;
   let campaign: Awaited<ReturnType<typeof loadCampaign>>;
   try {
@@ -41,6 +41,8 @@ export default async function EditCampaignPage({
         </PageHeaderContent>
         <PageActions>
           <CopyPublicLinkButton slug={slug} />
+          <ExportMenu slug={slug} />
+          <ImportThemeButton slug={slug} />
         </PageActions>
       </PageHeader>
       <PageContent>

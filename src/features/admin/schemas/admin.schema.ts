@@ -23,3 +23,12 @@ export const savePrizesSchema = z.object({
 });
 
 export const slugOnlySchema = z.object({ slug: slugSchema });
+
+export const importThemeSchema = z.object({
+  slug: slugSchema,
+  file: z.instanceof(File),
+});
+
+export const importCampaignSchema = z.object({
+  file: z.instanceof(File),
+});
