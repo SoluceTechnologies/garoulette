@@ -12,10 +12,11 @@ export function safeUnzip(buf: Buffer): {
   let total = 0;
   const raw = unzipSync(new Uint8Array(buf), {
     filter(file) {
-      total += file.size;
+      const originalSize = file.originalSize ?? 0;
+      total += originalSize;
       if (total > MAX_TOTAL_BYTES) throw new Error("Archive too large");
       const norm = file.name.replace(/\\/g, "/");
-      if (norm.endsWith(".json") && file.size > MAX_JSON_BYTES) {
+      if (norm.endsWith(".json") && originalSize > MAX_JSON_BYTES) {
         throw new Error("JSON entry too large");
       }
       return true;
@@ -27,7 +28,7 @@ export function safeUnzip(buf: Buffer): {
     if (rawName.endsWith("/")) continue;
     const norm = rawName.replace(/\\/g, "/");
     const parts = norm.split("/").filter(Boolean);
-    if (norm.startsWith("/") || parts.includes("..")) continue; // zip-slip guard
+    if (norm.startsWith("/") || parts.includes("..")) continue;
     if (parts.length === 1 && parts[0].endsWith(".json")) {
       json.set(parts[0], bytes);
     } else if (parts.length === 2 && parts[0] === "images") {
