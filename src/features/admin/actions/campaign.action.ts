@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createCampaign, deleteCampaign, saveSettings } from "@/features/campaign/lib/storage";
-import { adminAction } from "../lib/safe-action";
+import { adminAction } from "@/lib/actions";
 import { createCampaignSchema, saveSettingsSchema, slugOnlySchema } from "../schemas/admin.schema";
 
 export const createCampaignAction = adminAction

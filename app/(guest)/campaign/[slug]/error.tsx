@@ -1,6 +1,6 @@
 "use client";
 
-export default function CampaignError({ error }: { error: Error }) {
+export default function ErrorPage({ error }: { error: Error }) {
   return (
     <div className="flex min-h-full flex-1 flex-col items-center justify-center gap-4 bg-zinc-900 p-8 text-center">
       <h1 className="font-black text-3xl text-white">Campaign unavailable</h1>

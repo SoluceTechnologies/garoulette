@@ -21,7 +21,8 @@ export async function campaignStats(slug: string): Promise<CampaignStats> {
     totalDraws: draws.length,
     prizes: prizes.map((p) => {
       const drawn = draws.filter((d) => d.prizeId === p.id).length;
-      const remaining = stock.find((x) => x.id === p.id)?.remaining ?? p.initialStock - drawn;
+      const remaining =
+        stock.find((x) => x.id === p.id)?.remaining ?? p.initialStock - drawn;
       return {
         id: p.id,
         name: p.name,

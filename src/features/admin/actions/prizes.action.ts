@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { savePrizes } from "@/features/campaign/lib/storage";
-import { adminAction } from "../lib/safe-action";
+import { adminAction } from "@/lib/actions";
 import { savePrizesSchema } from "../schemas/admin.schema";
 
 export const savePrizesAction = adminAction

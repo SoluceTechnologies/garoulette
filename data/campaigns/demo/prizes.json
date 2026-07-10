@@ -3,7 +3,7 @@
     {
       "id": "prize-001",
       "name": "Headphones",
-      "image": "/images/headphones.png",
+      "image": "",
       "initialStock": 3,
       "weight": 10,
       "color": "#7B2FF7"
@@ -11,23 +11,23 @@
     {
       "id": "prize-002",
       "name": "20€ Voucher",
-      "image": "/images/voucher.png",
+      "image": "",
       "initialStock": 10,
       "weight": 30,
-      "color": "#00A6A6"
+      "color": "#7efe16"
     },
     {
       "id": "prize-003",
-      "name": "Stickers en 4K FULL HD",
-      "image": "/images/stickers.png",
+      "name": "Stickers",
+      "image": "",
       "initialStock": 50,
       "weight": 40,
-      "color": "#F25C05"
+      "color": "#0586ff"
     },
     {
       "id": "prize-004",
       "name": "Mug",
-      "image": "/images/mug.png",
+      "image": "",
       "initialStock": 5,
       "weight": 20,
       "color": "#E8386D"

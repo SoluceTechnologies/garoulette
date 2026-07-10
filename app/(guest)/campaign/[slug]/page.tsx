@@ -11,7 +11,9 @@ import { themeStyle } from "@/features/campaign/lib/theme";
 
 export const dynamic = "force-dynamic";
 
-export default async function CampaignPage({ params }: PageProps<"/campaign/[slug]">) {
+export default async function CampaignPage({
+  params,
+}: PageProps<"/campaign/[slug]">) {
   const { slug } = await params;
 
   let campaign: Awaited<ReturnType<typeof loadCampaign>>;
@@ -26,16 +28,19 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
   const availability = getAvailability(settings);
   const stock = computeStock(campaign.prizes, campaign.draws);
   const soldOut = stock.every((p) => p.effectiveWeight === 0);
-  const initialStatus = availability !== "active" ? availability : soldOut ? "soldOut" : "ready";
+  const initialStatus =
+    availability !== "active" ? availability : soldOut ? "soldOut" : "ready";
 
   const prizes: WheelPrize[] = campaign.prizes.map((p) => ({
     id: p.id,
     name: p.name,
-    imageUrl: prizeImageUrl(slug, p.image),
+    imageUrl: p.image ? prizeImageUrl(slug, p.image) : undefined,
     color: p.color,
   }));
 
-  const logoUrl = settings.theme?.logo ? prizeImageUrl(slug, settings.theme.logo) : undefined;
+  const logoUrl = settings.theme?.logo
+    ? prizeImageUrl(slug, settings.theme.logo)
+    : undefined;
   const soundUrls = await resolveSoundUrls(slug);
 
   return (
@@ -44,7 +49,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
       style={
         {
           ...themeStyle(settings),
-          "--font-sans": resolveFontVar(settings.theme?.font),
+          fontFamily: resolveFontVar(settings.theme?.font),
         } as React.CSSProperties
       }
     >
@@ -57,6 +62,7 @@ export default async function CampaignPage({ params }: PageProps<"/campaign/[slu
         prizes={prizes}
         soundUrls={soundUrls}
         initialStatus={initialStatus}
+        spinOnTapAnywhere={settings.spinOnTapAnywhere ?? true}
       />
     </div>
   );

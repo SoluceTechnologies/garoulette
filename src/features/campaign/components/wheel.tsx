@@ -3,28 +3,49 @@
 export type WheelPrize = {
   id: string;
   name: string;
-  imageUrl: string;
+  imageUrl?: string;
   color?: string;
 };
 
-const PALETTE = ["#E21B3C", "#1368CE", "#26890C", "#FFA602", "#9C27B0", "#0FB9B1"];
+const PALETTE = [
+  "#E21B3C",
+  "#1368CE",
+  "#26890C",
+  "#FFA602",
+  "#9C27B0",
+  "#0FB9B1",
+];
 
 type WheelProps = {
   prizes: WheelPrize[];
   rotation: number;
   spinDurationMs: number;
   onSpinEnd: () => void;
+  spinning: boolean;
 };
 
-export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProps) {
+export function Wheel({
+  prizes,
+  rotation,
+  spinDurationMs,
+  onSpinEnd,
+  spinning,
+}: WheelProps) {
   const seg = 360 / prizes.length;
   const stops = prizes
-    .map((prize, i) => `${prize.color ?? PALETTE[i % PALETTE.length]} ${i * seg}deg ${(i + 1) * seg}deg`)
+    .map(
+      (prize, i) =>
+        `${prize.color ?? PALETTE[i % PALETTE.length]} ${i * seg}deg ${(i + 1) * seg}deg`,
+    )
     .join(", ");
 
   return (
-    <div className="relative aspect-square w-full max-w-[min(100vmin,43rem)]">
-      <div className="-translate-y-1/2 absolute top-1/2 left-0 z-20 h-0 w-0 border-transparent border-l-[30px] border-l-foreground border-t-[18px] border-b-[18px]" />
+    <div
+      className={`relative aspect-square w-full max-w-[min(100vmin,43rem)] transition-transform duration-700 ease-out ${
+        spinning ? "scale-105 sm:scale-110" : "scale-100"
+      }`}
+    >
+      <div className="-translate-y-1/2 -left-4 absolute top-1/2 z-20 h-0 w-0 border-transparent border-b-[28px] border-l-[48px] border-l-foreground border-t-[28px] drop-shadow-[var(--shadow-card)]" />
       <div
         className="absolute inset-0 overflow-hidden rounded-full border-[6px] border-foreground shadow-[var(--shadow-pop)]"
         style={{
@@ -42,18 +63,23 @@ export function Wheel({ prizes, rotation, spinDurationMs, onSpinEnd }: WheelProp
             className="pointer-events-none absolute inset-0"
             style={{ transform: `rotate(${i * seg + 90}deg)` }}
           >
-            <div className="absolute inset-y-0 left-[8%] flex w-[40%] items-center justify-start gap-2">
+            <div className="absolute inset-y-0 left-[8%] flex w-[34%] items-center justify-start gap-2">
               {prize.imageUrl && (
                 <img
                   src={prize.imageUrl}
                   alt=""
-                  className="h-9 w-9 shrink-0 rounded object-contain"
+                  className="h-8 w-8 shrink-0 rounded object-contain sm:h-9 sm:w-9"
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
                   }}
                 />
               )}
-              <span className="min-w-0 flex-1 wrap-break-words font-bold text-white text-2xl leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+              <span
+                className={`line-clamp-2 min-w-0 flex-1 wrap-break-words font-bold text-sm text-white leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] sm:text-lg md:text-2xl ${
+                  prize.imageUrl ? "hidden sm:block" : ""
+                }`}
+              >
                 {prize.name}
               </span>
             </div>

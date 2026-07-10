@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { SESSION_COOKIE, verifySessionToken } from "@/features/admin/lib/session";
+import { verifySessionToken } from "@/features/admin/lib/session";
 
 export const config = {
   matcher: ["/admin/:path*", "/api/upload"],
@@ -9,11 +9,12 @@ export const config = {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLogin = pathname === "/admin";
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const token = request.cookies.get("admin_session")?.value;
   const session = await verifySessionToken(token);
 
   if (isLogin) {
-    if (session) return NextResponse.redirect(new URL("/admin/campaigns", request.url));
+    if (session)
+      return NextResponse.redirect(new URL("/admin/campaigns", request.url));
     return NextResponse.next();
   }
 

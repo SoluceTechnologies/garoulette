@@ -1,12 +1,12 @@
-import "server-only";
+"use server";
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { SESSION_COOKIE, verifySessionToken } from "./session";
+import { verifySessionToken } from "./session";
 
-/** Verify the admin session; redirect to login if absent/invalid. Memoised per request. */
 export const requireAdmin = cache(async (): Promise<{ role: "admin" }> => {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const token = (await cookies()).get("admin_session")?.value;
   const session = await verifySessionToken(token);
   if (!session) redirect("/admin");
   return session;

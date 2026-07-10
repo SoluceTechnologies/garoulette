@@ -1,7 +1,7 @@
 "use client";
 
 import { Volume2, VolumeOff } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { type KeyboardEvent, useCallback, useRef, useState } from "react";
 import { spinAction } from "../actions/spin.action";
 import { useKioskSounds } from "../hooks/use-sounds";
 import { landingRotationFor } from "../lib/landing";
@@ -15,7 +15,10 @@ import type { WheelPrize } from "./wheel";
 type TerminalStatus = "soldOut" | "disabled" | "notStarted" | "expired";
 type Status = "ready" | "spinning" | "result" | TerminalStatus;
 
-const TERMINAL_MESSAGES: Record<TerminalStatus, { title: string; subtitle: string }> = {
+const TERMINAL_MESSAGES: Record<
+  TerminalStatus,
+  { title: string; subtitle: string }
+> = {
   soldOut: {
     title: "All prizes have been given out 🎉",
     subtitle: "See you next time!",
@@ -40,6 +43,7 @@ type CampaignScreenProps = {
   prizes: WheelPrize[];
   soundUrls: SoundUrls;
   initialStatus: "ready" | TerminalStatus;
+  spinOnTapAnywhere: boolean;
 };
 
 export function CampaignScreen({
@@ -51,6 +55,7 @@ export function CampaignScreen({
   prizes,
   soundUrls,
   initialStatus,
+  spinOnTapAnywhere,
 }: CampaignScreenProps) {
   const [status, setStatus] = useState<Status>(initialStatus);
   const [rotation, setRotation] = useState(0);
@@ -59,7 +64,11 @@ export function CampaignScreen({
   const pendingPrize = useRef<WheelPrize | null>(null);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { startSpin, endSpin, setMuted: setSoundMuted } = useKioskSounds(soundUrls);
+  const {
+    startSpin,
+    endSpin,
+    setMuted: setSoundMuted,
+  } = useKioskSounds(soundUrls);
 
   const seg = prizes.length > 0 ? 360 / prizes.length : 0;
 
@@ -79,19 +88,16 @@ export function CampaignScreen({
     if (status !== "ready") return;
     setStatus("spinning");
     startSpin();
-    // Kick off a visible spin immediately to mask network latency.
     setRotation((r) => r + 360 * 2);
 
     const res = await spinAction({ slug });
     const data = res?.data;
 
     if (!data || res?.serverError) {
-      // Treat an unexpected failure as a soft reset back to ready.
       setStatus("ready");
       return;
     }
     if (data.status !== "win") {
-      // disabled / notStarted / expired / soldOut -> terminal screen.
       setStatus(data.status);
       return;
     }
@@ -125,25 +131,40 @@ export function CampaignScreen({
 
   if (status !== "ready" && status !== "spinning" && status !== "result") {
     const message = TERMINAL_MESSAGES[status];
-    return <StatusScreen logoUrl={logoUrl} title={message.title} subtitle={message.subtitle} />;
+    return (
+      <StatusScreen
+        logoUrl={logoUrl}
+        title={message.title}
+        subtitle={message.subtitle}
+      />
+    );
   }
+
+  const surfaceInteractive =
+    status === "result" || (spinOnTapAnywhere && status === "ready");
+  const surfaceProps = surfaceInteractive
+    ? {
+        role: "button" as const,
+        tabIndex: 0,
+        "aria-label": status === "result" ? "Continue" : "Spin the wheel",
+        onClick: handleTap,
+        onKeyDown: (e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleTap();
+          }
+        },
+      }
+    : {};
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: the whole kiosk surface is a tap target; a nested mute <button> can't live inside a <button>.
     <div
-      role="button"
-      tabIndex={0}
-      aria-label="Spin the wheel"
-      onClick={handleTap}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handleTap();
-        }
-      }}
-      className="relative flex min-h-full w-full flex-1 cursor-pointer flex-col bg-background focus:outline-none"
+      {...surfaceProps}
+      className={`relative flex h-dvh w-full flex-1 flex-col overflow-hidden bg-background focus:outline-none ${
+        surfaceInteractive ? "cursor-pointer" : ""
+      }`}
     >
-      {/* Soft backdrop tinted with the campaign's secondary colour. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"
@@ -158,7 +179,7 @@ export function CampaignScreen({
         <img
           src={logoUrl}
           alt=""
-          className="pointer-events-none absolute top-4 left-4 z-20 h-10 w-auto object-contain sm:h-14"
+          className="pointer-events-none absolute top-4 left-4 z-20 h-16 w-auto object-contain sm:h-24"
         />
       )}
 
@@ -182,6 +203,9 @@ export function CampaignScreen({
         onSpinEnd={handleSpinEnd}
         showCta={status === "ready"}
         dimmed={status === "result"}
+        spinning={status === "spinning"}
+        tapAnywhere={spinOnTapAnywhere}
+        onSpin={() => void spin()}
       />
       {status === "result" && wonPrize && <PrizeReveal prize={wonPrize} />}
     </div>

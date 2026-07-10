@@ -10,9 +10,11 @@ type SpinStageProps = {
   onSpinEnd: () => void;
   showCta: boolean;
   dimmed: boolean;
+  spinning: boolean;
+  tapAnywhere: boolean;
+  onSpin: () => void;
 };
 
-/** The "ready / spinning" surface: welcome headline, the wheel, and the spin CTA. */
 export function SpinStage({
   welcomeMessage,
   prizes,
@@ -21,10 +23,18 @@ export function SpinStage({
   onSpinEnd,
   showCta,
   dimmed,
+  spinning,
+  tapAnywhere,
+  onSpin,
 }: SpinStageProps) {
+  const ctaClassName = `rounded-full bg-primary px-12 py-5 font-black text-primary-foreground text-xl uppercase tracking-wide shadow-[var(--shadow-pop)] transition-all duration-300 sm:text-2xl ${
+    showCta
+      ? "translate-y-0 opacity-100"
+      : "pointer-events-none translate-y-2 opacity-0"
+  }`;
   return (
     <div
-      className={`flex min-h-full w-full flex-1 flex-col items-center justify-center gap-6 px-6 py-14 transition-opacity duration-300 sm:gap-10 ${
+      className={`flex h-full w-full flex-1 flex-col items-center justify-center gap-4 px-6 py-6 transition-opacity duration-300 sm:gap-8 sm:py-10 ${
         dimmed ? "opacity-40" : "opacity-100"
       }`}
     >
@@ -34,15 +44,30 @@ export function SpinStage({
         </h1>
       )}
 
-      <Wheel prizes={prizes} rotation={rotation} spinDurationMs={spinDurationMs} onSpinEnd={onSpinEnd} />
+      <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+        <Wheel
+          prizes={prizes}
+          rotation={rotation}
+          spinDurationMs={spinDurationMs}
+          onSpinEnd={onSpinEnd}
+          spinning={spinning}
+        />
+      </div>
 
-      <span
-        className={`rounded-full bg-primary px-12 py-5 font-black text-primary-foreground text-xl uppercase tracking-wide shadow-[var(--shadow-pop)] transition-all duration-300 sm:text-2xl ${
-          showCta ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"
-        }`}
-      >
-        Tap to spin
-      </span>
+      {tapAnywhere ? (
+        <span className={ctaClassName}>Tap to spin</span>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSpin();
+          }}
+          className={ctaClassName}
+        >
+          Spin
+        </button>
+      )}
     </div>
   );
 }
