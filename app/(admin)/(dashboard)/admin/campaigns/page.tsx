@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { CampaignsTable } from "@/features/admin/components/campaigns/campaigns.table";
+import { ImportCampaignButton } from "@/features/admin/components/campaigns/import-campaign-button";
 import { StatCards } from "@/features/admin/components/campaigns/stat-cards";
 import {
   Page,
@@ -48,6 +49,7 @@ export default async function AdminDashboard() {
           <PageDescription>Manage your prize wheels.</PageDescription>
         </PageHeaderContent>
         <PageActions>
+          <ImportCampaignButton />
           <Button
             render={
               <Link href="/admin/campaigns/new">

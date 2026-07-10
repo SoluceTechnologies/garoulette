@@ -222,8 +222,26 @@ export async function resetDraws(slug: string): Promise<void> {
   });
 }
 
-const ALLOWED_IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".webp"]);
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export async function writeDraws(slug: string, draws: Draw[]): Promise<void> {
+  assertValidSlug(slug);
+  const parsed = drawsFileSchema.parse({ draws });
+  await withCampaignLock(slug, async () => {
+    await atomicWrite(path.join(campaignDir(slug), "draws.json"), JSON.stringify(parsed, null, 2));
+  });
+}
+
+export async function replaceImages(slug: string, files: Map<string, Uint8Array>): Promise<void> {
+  assertValidSlug(slug);
+  const dir = path.join(campaignDir(slug), "images");
+  await fs.rm(dir, { recursive: true, force: true });
+  await fs.mkdir(dir, { recursive: true });
+  for (const [name, bytes] of files) {
+    await fs.writeFile(path.join(dir, path.basename(name)), bytes);
+  }
+}
+
+export const ALLOWED_IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".webp"]);
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export async function saveImage(slug: string, originalName: string, bytes: Buffer): Promise<string> {
   assertValidSlug(slug);
