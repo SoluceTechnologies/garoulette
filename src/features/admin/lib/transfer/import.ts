@@ -33,7 +33,7 @@ export async function createCampaignFromZip(slug: string, buf: Buffer): Promise<
   const settings = settingsSchema.parse(decodeJson(json, "settings.json"));
   const { prizes } = prizesFileSchema.parse(decodeJson(json, "prizes.json"));
   const draws = json.has("draws.json") ? drawsFileSchema.parse(decodeJson(json, "draws.json")).draws : [];
-  await createCampaign(slug, settings); // throws "Campaign already exists" if taken
+  await createCampaign(slug, settings);
   await savePrizes(slug, prizes);
   await writeDraws(slug, draws);
   if (images.size > 0) await replaceImages(slug, images);
