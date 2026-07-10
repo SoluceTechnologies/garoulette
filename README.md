@@ -22,9 +22,9 @@ Everything runs on your own server and stores data as plain files on disk — no
 
 ### See it in action
 
-| Spin & win | Manage a campaign |
-|:---:|:---:|
-| <img src=".github/assets/spin-mobile.gif" width="260" alt="Spinning the wheel and winning a prize" /> | <img src=".github/assets/admin-campaign.gif" width="260" alt="Editing a campaign in the dashboard" /> |
+<p align="center">
+  <img src=".github/assets/demo.gif" width="640" alt="Creating a campaign and spinning the wheel" />
+</p>
 
 ---
 
@@ -45,14 +45,13 @@ Everything runs on your own server and stores data as plain files on disk — no
 
 ## Screenshots
 
-| | Desktop | Mobile |
-|---|:---:|:---:|
-| **Home** | <img src=".github/assets/home-desktop.png" width="420" alt="Campaign picker (desktop)" /> | <img src=".github/assets/home-mobile.png" width="200" alt="Campaign picker (mobile)" /> |
-| **The wheel** | <img src=".github/assets/wheel-desktop.png" width="420" alt="Guest wheel (desktop)" /> | <img src=".github/assets/wheel-mobile.png" width="200" alt="Guest wheel (mobile)" /> |
-| **Sign in** | <img src=".github/assets/login-desktop.png" width="420" alt="Admin sign in (desktop)" /> | <img src=".github/assets/login-mobile.png" width="200" alt="Admin sign in (mobile)" /> |
-| **Dashboard** | <img src=".github/assets/dashboard-desktop.png" width="420" alt="Campaigns dashboard (desktop)" /> | <img src=".github/assets/dashboard-mobile.png" width="200" alt="Campaigns dashboard (mobile)" /> |
-| **Campaign settings** | <img src=".github/assets/settings-desktop.png" width="420" alt="Campaign settings (desktop)" /> | <img src=".github/assets/settings-mobile.png" width="200" alt="Campaign settings (mobile)" /> |
-| **Prizes** | <img src=".github/assets/prizes-desktop.png" width="420" alt="Prizes editor (desktop)" /> | <img src=".github/assets/prizes-mobile.png" width="200" alt="Prizes editor (mobile)" /> |
+| Public home | Dashboard |
+|:---:|:---:|
+| <img src=".github/assets/homepage.png" alt="Campaign picker" /> | <img src=".github/assets/dashboard-home.png" alt="Campaigns dashboard" /> |
+| **New campaign** | **Campaign settings** |
+| <img src=".github/assets/dashboard-new-campaign.png" alt="Create a new campaign" /> | <img src=".github/assets/dashboard-detail-campaign-settings.png" alt="Campaign settings" /> |
+| **Prizes** | **Stats** |
+| <img src=".github/assets/dashboard-detail-campaign-prizes.png" alt="Prizes editor" /> | <img src=".github/assets/dashboard-detail-campaign-stats.png" alt="Campaign stats" /> |
 
 ---
 

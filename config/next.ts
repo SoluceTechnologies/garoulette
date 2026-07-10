@@ -3,7 +3,7 @@ import { buildCSPHeader, buildPermissionsPolicy } from "./security";
 
 export const nextConfig: NextConfig = {
   output: "standalone",
-  //devIndicators: false,
+  devIndicators: false,
   images: {},
   logging: {
     browserToTerminal: false,

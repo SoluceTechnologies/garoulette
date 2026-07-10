@@ -5,13 +5,13 @@
     "secondaryColor": "#7f0812",
     "backgroundColor": "#ededed",
     "logo": "",
-    "font": "Nunito"
+    "font": "Quicksand"
   },
   "enabled": true,
-  "spinOnTapAnywhere": false,
+  "spinOnTapAnywhere": true,
   "startAt": "",
   "expiresAt": "",
-  "welcomeMessage": "Tente de gagner une bugatti chiron",
+  "welcomeMessage": "",
   "resetDelaySeconds": 6,
   "spinDurationSeconds": 10
 }
