@@ -2,11 +2,25 @@ import path from "node:path";
 import { unzipSync } from "fflate";
 import { ALLOWED_IMAGE_EXT, MAX_IMAGE_BYTES } from "@/features/campaign/lib/storage";
 
+const MAX_JSON_BYTES = 2 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 100 * 1024 * 1024;
+
 export function safeUnzip(buf: Buffer): {
   json: Map<string, Uint8Array>;
   images: Map<string, Uint8Array>;
 } {
-  const raw = unzipSync(new Uint8Array(buf));
+  let total = 0;
+  const raw = unzipSync(new Uint8Array(buf), {
+    filter(file) {
+      total += file.size;
+      if (total > MAX_TOTAL_BYTES) throw new Error("Archive too large");
+      const norm = file.name.replace(/\\/g, "/");
+      if (norm.endsWith(".json") && file.size > MAX_JSON_BYTES) {
+        throw new Error("JSON entry too large");
+      }
+      return true;
+    },
+  });
   const json = new Map<string, Uint8Array>();
   const images = new Map<string, Uint8Array>();
   for (const [rawName, bytes] of Object.entries(raw)) {
