@@ -13,7 +13,10 @@ const MIME: Record<string, string> = {
   ".svg": "image/svg+xml",
 };
 
-export async function GET(_req: Request, ctx: RouteContext<"/campaign/[slug]/images/[...file]">) {
+export async function GET(
+  _req: Request,
+  ctx: { params: Promise<{ slug: string; file: string[] }> },
+) {
   const { slug, file } = await ctx.params;
   const rel = Array.isArray(file) ? file.join("/") : file;
   const dir = path.join(campaignDir(slug), "images");

@@ -13,7 +13,9 @@ export const dynamic = "force-dynamic";
 
 export default async function CampaignPage({
   params,
-}: PageProps<"/campaign/[slug]">) {
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
 
   let campaign: Awaited<ReturnType<typeof loadCampaign>>;

@@ -12,7 +12,10 @@ const MIME: Record<string, string> = {
   ".aac": "audio/aac",
 };
 
-export async function GET(_req: Request, ctx: RouteContext<"/campaign/[slug]/sound/[...file]">) {
+export async function GET(
+  _req: Request,
+  ctx: { params: Promise<{ slug: string; file: string[] }> },
+) {
   const { slug, file } = await ctx.params;
   const rel = Array.isArray(file) ? file.join("/") : file;
   const dir = path.join(campaignDir(slug), "sound");

@@ -21,7 +21,11 @@ import { loadCampaign } from "@/features/campaign/lib/storage";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditCampaignPage({ params }: PageProps<"/admin/campaigns/[slug]">) {
+export default async function EditCampaignPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   let campaign: Awaited<ReturnType<typeof loadCampaign>>;
   try {
